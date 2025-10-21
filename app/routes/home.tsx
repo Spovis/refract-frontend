@@ -1,6 +1,14 @@
-import { createItem, deleteItem, getItems } from "~/utils/backend";
-import type { Route } from "./+types/home";
-import { Form, redirect } from "react-router";
+import {
+  createItem,
+  deleteItem,
+  getAvailableLanguages,
+  getItems,
+  putTranslation,
+} from "~/utils/backend";
+import type { Route } from "./+types/home.tsx";
+import { Form } from "react-router";
+import ItemRow from "~/src/ItemRow.js";
+import Button from "~/src/general/Button.js";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Refract" }];
@@ -8,11 +16,13 @@ export function meta({}: Route.MetaArgs) {
 
 export async function loader() {
   const items = await getItems();
-  return { items };
+  const availableLanguages = await getAvailableLanguages();
+  return { items, availableLanguages };
 }
 
-const pageActions = {
+export const homePageActions = {
   createItem: "CREATE_ITEM",
+  saveTranslation: "SAVE_TRANSLATION",
   deleteItem: "DELETE_ITEM",
 };
 
@@ -21,7 +31,7 @@ export async function action({ request }: Route.ActionArgs) {
   const action = formData.get("_action");
 
   switch (action) {
-    case pageActions.createItem: {
+    case homePageActions.createItem: {
       const text = formData.get("text");
       if (!text || typeof text !== "string") {
         return { error: "Text is required" };
@@ -29,12 +39,28 @@ export async function action({ request }: Route.ActionArgs) {
       await createItem(text);
       return { success: true };
     }
-    case pageActions.deleteItem: {
+    case homePageActions.deleteItem: {
       const itemId = formData.get("itemId");
       if (!itemId || typeof itemId !== "string") {
         return { error: "Item ID is required" };
       }
       await deleteItem(itemId);
+      return { success: true };
+    }
+    case homePageActions.saveTranslation: {
+      const itemId = formData.get("itemId");
+      if (!itemId || typeof itemId !== "string") {
+        return { error: "Item ID is required" };
+      }
+      const languageId = formData.get("language");
+      if (!languageId || typeof languageId !== "string") {
+        return { error: "Language ID is required" };
+      }
+      const translation = formData.get("translation");
+      if (!translation || typeof translation !== "string") {
+        return { error: "Translation is required" };
+      }
+      await putTranslation(itemId, languageId, translation);
       return { success: true };
     }
     default: {
@@ -45,24 +71,28 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { items } = loaderData;
+  const { items, availableLanguages } = loaderData;
 
   return (
     <div>
-      {items.map((item) => (
-        <Form key={item.item_id} method="post" className="m-2">
-          <p key={item.item_id}>{item.text}</p>
-          <input type="hidden" name="itemId" value={item.item_id} />
-          <button
-            type="submit"
-            name="_action"
-            value={pageActions.deleteItem}
-            className="bg-red-500 text-white rounded-md p-2"
-          >
-            Delete
-          </button>
-        </Form>
-      ))}
+      <div className="grid grid-cols-10 font-bold mt-5">
+        <div className="col-span-1"></div>
+        <div className="col-span-3">English</div>
+        <div className="col-span-5">Translation</div>
+        <div className="col-span-1"></div>
+      </div>
+      {items.map(
+        (item: {
+          item_id: number;
+          translations: { language_id: number; text: string }[];
+        }) => (
+          <ItemRow
+            key={item.item_id}
+            item={item}
+            availableLanguages={availableLanguages}
+          />
+        )
+      )}
 
       <Form method="post" className="m-2">
         <input
@@ -70,14 +100,14 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           name="text"
           className="border-2 border-gray-300 rounded-md p-2"
         />
-        <button
+        <Button
           type="submit"
           name="_action"
-          value={pageActions.createItem}
-          className="bg-blue-500 text-white rounded-md p-2"
+          value={homePageActions.createItem}
+          color="blue"
         >
           Add Item
-        </button>
+        </Button>
       </Form>
     </div>
   );
