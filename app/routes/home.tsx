@@ -1,4 +1,4 @@
-import { createString, deleteString, getStrings } from "~/utils/backend";
+import { createItem, deleteItem, getItems } from "~/utils/backend";
 import type { Route } from "./+types/home";
 import { Form, redirect } from "react-router";
 
@@ -7,13 +7,13 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export async function loader() {
-  const strings = await getStrings();
-  return { strings };
+  const items = await getItems();
+  return { items };
 }
 
 const pageActions = {
-  createString: "CREATE_STRING",
-  deleteString: "DELETE_STRING",
+  createItem: "CREATE_ITEM",
+  deleteItem: "DELETE_ITEM",
 };
 
 export async function action({ request }: Route.ActionArgs) {
@@ -21,20 +21,20 @@ export async function action({ request }: Route.ActionArgs) {
   const action = formData.get("_action");
 
   switch (action) {
-    case pageActions.createString: {
+    case pageActions.createItem: {
       const text = formData.get("text");
       if (!text || typeof text !== "string") {
         return { error: "Text is required" };
       }
-      await createString(text);
+      await createItem(text);
       return { success: true };
     }
-    case pageActions.deleteString: {
-      const stringId = formData.get("stringId");
-      if (!stringId || typeof stringId !== "string") {
-        return { error: "String ID is required" };
+    case pageActions.deleteItem: {
+      const itemId = formData.get("itemId");
+      if (!itemId || typeof itemId !== "string") {
+        return { error: "Item ID is required" };
       }
-      await deleteString(stringId);
+      await deleteItem(itemId);
       return { success: true };
     }
     default: {
@@ -45,18 +45,18 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { strings } = loaderData;
+  const { items } = loaderData;
 
   return (
     <div>
-      {strings.map((string) => (
-        <Form key={string.string_id} method="post" className="m-2">
-          <p key={string.string_id}>{string.text}</p>
-          <input type="hidden" name="stringId" value={string.string_id} />
+      {items.map((item) => (
+        <Form key={item.item_id} method="post" className="m-2">
+          <p key={item.item_id}>{item.text}</p>
+          <input type="hidden" name="itemId" value={item.item_id} />
           <button
             type="submit"
             name="_action"
-            value={pageActions.deleteString}
+            value={pageActions.deleteItem}
             className="bg-red-500 text-white rounded-md p-2"
           >
             Delete
@@ -73,10 +73,10 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         <button
           type="submit"
           name="_action"
-          value={pageActions.createString}
+          value={pageActions.createItem}
           className="bg-blue-500 text-white rounded-md p-2"
         >
-          Add String
+          Add Item
         </button>
       </Form>
     </div>

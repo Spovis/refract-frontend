@@ -1,17 +1,17 @@
 // We can change this to the production backend URL when we deploy
 const BACKEND_URL = "http://localhost:5123";
 
-export const getStrings = async (): Promise<
-  { string_id: string; text: string }[]
+export const getItems = async (): Promise<
+  { item_id: string; text: string }[]
 > => {
-  const response = await fetch(`${BACKEND_URL}/strings`);
+  const response = await fetch(`${BACKEND_URL}/items`);
   return response.json();
 };
 
-export const createString = async (
+export const createItem = async (
   text: string
 ): Promise<{ string_id: string }> => {
-  const response = await fetch(`${BACKEND_URL}/string`, {
+  const response = await fetch(`${BACKEND_URL}/item`, {
     method: "POST",
     body: JSON.stringify({ text }),
     headers: {
@@ -21,8 +21,8 @@ export const createString = async (
   return response.json();
 };
 
-export const deleteString = async (string_id: string): Promise<void> => {
-  const response = await fetch(`${BACKEND_URL}/string/${string_id}`, {
+export const deleteItem = async (item_id: string): Promise<void> => {
+  const response = await fetch(`${BACKEND_URL}/item/${item_id}`, {
     method: "DELETE",
   });
   return response.json();
