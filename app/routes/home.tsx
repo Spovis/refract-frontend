@@ -77,7 +77,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     <div>
       <div className="grid grid-cols-10 font-bold mt-5">
         <div className="col-span-1"></div>
-        <div className="col-span-3">English</div>
+        <div className="col-span-3">English (US)</div>
         <div className="col-span-5">Translation</div>
         <div className="col-span-1"></div>
       </div>
