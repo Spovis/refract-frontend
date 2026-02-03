@@ -1,7 +1,6 @@
-// We can change this to the production backend URL when we deploy
+
 const BACKEND_URL = "http://127.0.0.1:5002";
 
-//
 export const getItems = async (): Promise<
   { item_id: number; translations: { language_id: number; text: string }[] }[]
 > => {
