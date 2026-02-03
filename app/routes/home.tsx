@@ -4,13 +4,14 @@ import {
   getAvailableLanguages,
   getItems,
   putTranslation,
+  queueTranslations,
 } from "~/utils/backend";
 import type { Route } from "./+types/home.tsx";
 import { Form } from "react-router";
 import ItemRow from "~/src/ItemRow.js";
 import Button from "~/src/general/Button.js";
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [{ title: "Refract" }];
 }
 
@@ -24,6 +25,7 @@ export const homePageActions = {
   createItem: "CREATE_ITEM",
   saveTranslation: "SAVE_TRANSLATION",
   deleteItem: "DELETE_ITEM",
+  queueTranslations: "QUEUE_TRANSLATIONS",
 };
 
 export async function action({ request }: Route.ActionArgs) {
@@ -62,6 +64,15 @@ export async function action({ request }: Route.ActionArgs) {
       }
       await putTranslation(itemId, languageId, translation);
       return { success: true };
+    }
+    case homePageActions.queueTranslations: {
+      try {
+        await queueTranslations();
+        return { success: true };
+      } catch (e) {
+        console.error('Error queueing translations', e);
+        return { error: 'Failed to queue translations' };
+      }
     }
     default: {
       console.error("Invalid action", action);
@@ -107,6 +118,17 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           color="blue"
         >
           Add Item
+        </Button>
+      </Form>
+
+      <Form method="post" className="m-2">
+        <Button
+          type="submit"
+          name="_action"
+          value={homePageActions.queueTranslations}
+          color="blue"
+        >
+          queue translations
         </Button>
       </Form>
     </div>
