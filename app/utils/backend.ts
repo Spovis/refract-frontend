@@ -1,11 +1,17 @@
 // We can change this to the production backend URL when we deploy
-const BACKEND_URL = "http://localhost:5123";
+const BACKEND_URL = "http://127.0.0.1:5002";
 
 //
 export const getItems = async (): Promise<
   { item_id: number; translations: { language_id: number; text: string }[] }[]
 > => {
   const response = await fetch(`${BACKEND_URL}/items`);
+  return response.json();
+};
+
+export const getItem = async (item_id: string | number): Promise<any> => {
+  const response = await fetch(`${BACKEND_URL}/items/${item_id}`);
+  if (!response.ok) throw new Error(`Item ${item_id} not found`);
   return response.json();
 };
 
@@ -23,7 +29,7 @@ export const createItem = async (
 };
 
 export const deleteItem = async (item_id: string): Promise<void> => {
-  const response = await fetch(`${BACKEND_URL}/item/${item_id}`, {
+  const response = await fetch(`${BACKEND_URL}/items/${item_id}`, {
     method: "DELETE",
   });
   return response.json();

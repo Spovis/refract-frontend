@@ -23,6 +23,20 @@ export const links: Route.LinksFunction = () => [
   },
 ];
 
+import { createItem } from "~/utils/backend";
+import type { ActionArgs } from "./+types/root";
+import { redirect } from "react-router";
+
+export async function action({ request }: ActionArgs) {
+  const formData = await request.formData();
+  const text = formData.get("text");
+  if (!text || typeof text !== "string") return { error: "Text is required" };
+  const result = await createItem(text);
+  const id = result?.item_id ?? result?.string_id;
+  if (id) return redirect(`/items/${id}`);
+  return { success: true };
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
