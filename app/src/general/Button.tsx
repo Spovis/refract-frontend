@@ -1,32 +1,12 @@
+import * as React from "react";
 import { twMerge } from "tailwind-merge";
+import { Button as ShadButton } from "~/components/ui/button";
 
-type Color = "blue" | "red" | "light-blue";
+type ShadProps = React.ComponentProps<typeof ShadButton>;
 
-const ColorMap: Record<Color, string> = {
-  blue: "bg-blue-500 text-white",
-  red: "bg-red-500 text-white",
-  "light-blue": "bg-light-blue-500 text-white",
-};
-
-const Button = ({
-  children,
-  color,
-  ...props
-}: {
-  children: React.ReactNode;
-  color: Color;
-} & React.ButtonHTMLAttributes<HTMLButtonElement>) => {
-  const colorClass = ColorMap[color];
-  const className = twMerge(
-    colorClass,
-    "rounded-md px-2 py-1 h-fit w-fit",
-    props.className
-  );
-  return (
-    <button {...props} className={className}>
-      {children}
-    </button>
-  );
+const Button = ({ className, variant, ...props }: ShadProps) => {
+  const merged = twMerge("bg-black text-white hover:bg-black/90", className);
+  return <ShadButton variant={variant ?? "default"} className={merged} {...props} />;
 };
 
 export default Button;
