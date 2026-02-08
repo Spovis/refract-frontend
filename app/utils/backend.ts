@@ -50,11 +50,10 @@ export const putTranslation = async (
   });
 };
 
-export const queueTranslations = async (item_id?: string): Promise<void> => {
-  const body = item_id ? { item_id } : {};
+export const queueTranslations = async (): Promise<void> => {
   await fetch(`${BACKEND_URL}/translation/queue`, {
     method: "POST",
-    body: JSON.stringify(body),
+    body: JSON.stringify({}),
     headers: {
       "Content-Type": "application/json",
     },
