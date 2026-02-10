@@ -36,6 +36,7 @@ export async function action({ request }: ActionArgs) {
     if (!text || typeof text !== "string") return { error: "Text is required" };
     const result = await createItem(text);
     const id = result?.item_id ?? (result as any)?.string_id;
+    await queueTranslations(id);
     if (id) return redirect(`/items/${id}`);
     return { success: true };
   }
