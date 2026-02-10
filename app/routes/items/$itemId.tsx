@@ -62,11 +62,12 @@ export default function ItemEditor() {
           <Form method="post" key={lang.language_id} className="flex items-center gap-2">
             <input type="hidden" name="itemId" value={item.item_id} />
             <input type="hidden" name="language" value={lang.language_id} />
+            <a>{lang.name}</a>
             <input
               type="text"
               name="translation"
               defaultValue={translation}
-              placeholder={`Translation (${lang.name})`}
+              placeholder={`Enter translation..`}
               className="border p-2 rounded flex-1"
             />
             <Button type="submit" name="_action" value="SAVE_TRANSLATION" color="green">

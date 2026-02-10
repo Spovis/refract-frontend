@@ -28,4 +28,3 @@ export interface Route {
   ComponentProps: ComponentProps;
   MetaArgs: Record<string, any>;
 }
-

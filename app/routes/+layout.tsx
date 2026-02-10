@@ -1,23 +1,11 @@
 import { Outlet, NavLink, Form, useLoaderData } from "react-router";
 import type { LoaderArgs, ActionArgs } from "~/routes/+types";
-import { getItems, createItem } from "~/utils/backend";
+import { getItems, createItem, queueTranslations } from "~/utils/backend";
 import Button from "~/src/general/Button";
 
 export async function loader(): Promise<LoaderArgs> {
   const items = await getItems();
   return { items };
-}
-
-import { redirect } from "react-router";
-
-export async function action({ request }: ActionArgs) {
-  const formData = await request.formData();
-  const text = formData.get("text");
-  if (!text || typeof text !== "string") return { error: "Text is required" };
-  const result = await createItem(text);
-  const id = result?.item_id ?? (result as any)?.string_id;
-  if (id) return redirect(`/items/${id}`);
-  return { success: true };
 }
 
 export default function Layout() {
@@ -35,9 +23,7 @@ export default function Layout() {
               key={item.item_id}
               to={`items/${item.item_id}`} // relative path
               className={({ isActive }) =>
-                `block rounded px-2 py-1 text-sm ${
-                  isActive ? "bg-blue-600 text-white" : "hover:bg-gray-100"
-                }`
+                `block rounded px-2 py-1 text-sm ${isActive ? "bg-blue-600 text-white" : "hover:bg-gray-100"}`
               }
             >
               {item.translations?.[0]?.text ?? "Untitled"}
@@ -46,15 +32,22 @@ export default function Layout() {
         </div>
 
         {/* Add new string */}
-         <Form method="post" action="/" className="mt-4">
+        <Form method="post" action="/" className="mt-4">
           <input
             type="text"
             name="text"
             placeholder="New string"
             className="w-full border rounded p-2 mb-2"
           />
-          <Button type="submit" className="w-full">
+          <Button type="submit" name="_action" value="add-item">
             Add Item
+          </Button>
+        </Form>
+
+        {/* queue translations */}
+        <Form method="post" action="/" className="mt-4">
+          <Button type="submit" name="_action" value="queue-translations" className="w-full">
+            Queue Translations
           </Button>
         </Form>
       </aside>
