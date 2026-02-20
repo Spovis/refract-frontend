@@ -33,6 +33,7 @@ export async function action({ request }: ActionArgs) {
   if (actionType === "queue-translations") {
     try {
       await queueTranslations();
+      await new Promise(resolve => setTimeout(resolve, 3000));
       return { success: true };
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";

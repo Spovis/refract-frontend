@@ -15,7 +15,7 @@ export async function loader() {
   return { items, availableLanguages };
 }
 
-//save translation or delete
+//save translation and delete functions
 export async function action({ request }: ActionArgs) {
   const formData = await request.formData();
   const _action = formData.get("_action");
