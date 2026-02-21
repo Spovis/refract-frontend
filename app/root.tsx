@@ -36,7 +36,10 @@ export async function action({ request }: ActionArgs) {
     if (!text || typeof text !== "string") return { error: "Text is required" };
     try {
       const result = await createItem(text);
-      if (result?.item_id) return redirect(`/items/${result.item_id}`);
+      if (result?.item_id) {
+        await queueTranslations((result.item_id).toString());
+        return redirect(`/items/${result.item_id}`);
+      }
       return { error: "Failed to create item" };
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";

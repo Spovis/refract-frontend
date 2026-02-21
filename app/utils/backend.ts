@@ -60,10 +60,10 @@ export const putTranslation = async (
   });
 };
 
-export const queueTranslations = async (): Promise<void> => {
+export const queueTranslations = async (item_id?: string): Promise<void> => {
   await fetch(`${BASE}/translation/queue`.replace(/\/api\/api/, "/api/translation/queue"), {
     method: "POST",
-    body: JSON.stringify({}),
+    body: JSON.stringify({ item_id }),
     headers: {
       "Content-Type": "application/json",
     },
