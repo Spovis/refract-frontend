@@ -15,7 +15,7 @@ export async function loader() {
   return { items, availableLanguages };
 }
 
-//save translation or delete
+//save translation and delete functions
 export async function action({ request }: ActionArgs) {
   const formData = await request.formData();
   const _action = formData.get("_action");
@@ -59,7 +59,7 @@ export default function ItemEditor() {
           t => t.language_id === lang.language_id
         )?.text;
         return (
-          <Form method="post" key={lang.language_id} className="flex items-center gap-2">
+          <Form method="post" key={`${item.item_id}-${lang.language_id}`} className="flex items-center gap-2">
             <input type="hidden" name="itemId" value={item.item_id} />
             <input type="hidden" name="language" value={lang.language_id} />
             <a>{lang.name}</a>

@@ -34,11 +34,17 @@ export async function action({ request }: ActionArgs) {
   if (actionType === "add-item") {
     const text = formData.get("text");
     if (!text || typeof text !== "string") return { error: "Text is required" };
-    const result = await createItem(text);
-    const id = result?.item_id ?? (result as any)?.string_id;
-    await queueTranslations(id);
-    if (id) return redirect(`/items/${id}`);
-    return { success: true };
+    try {
+      const result = await createItem(text);
+      if (result?.item_id) {
+        await queueTranslations((result.item_id).toString());
+        return redirect(`/items/${result.item_id}`);
+      }
+      return { error: "Failed to create item" };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      return { error: `Create item failed: ${message}` };
+    }
   }
 
 
