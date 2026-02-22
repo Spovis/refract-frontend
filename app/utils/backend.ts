@@ -70,3 +70,14 @@ export const queueTranslations = async (item_id?: string): Promise<void> => {
     credentials: "include",
   });
 }
+
+export const importFromSource = async (): Promise<void> => {
+  await fetch(`${BASE}/import`.replace(/\/api\/api/, "/api/import"), {
+    method: "POST",
+    body: JSON.stringify({}),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+  });
+}

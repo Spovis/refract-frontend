@@ -23,7 +23,7 @@ export const links: Route.LinksFunction = () => [
   },
 ];
 
-import { createItem, queueTranslations } from "~/utils/backend";
+import { createItem, queueTranslations, importFromSource } from "~/utils/backend";
 import type { ActionArgs } from "./+types/root";
 import { redirect } from "react-router";
 
@@ -50,6 +50,11 @@ export async function action({ request }: ActionArgs) {
 
   if (actionType === "queue-translations") {
     await queueTranslations();
+    return { success: true };
+  }
+
+  if (actionType === "import-from-source") {
+    await importFromSource();
     return { success: true };
   }
 
