@@ -4,6 +4,19 @@ import type { LoaderArgs, ActionArgs } from "~/routes/+types";
 import { getItems, createItem, queueTranslations, BACKEND_URL } from "~/utils/backend";
 import Button from "~/src/general/Button";
 import { Header } from "~/components/ui/header/header";
+import { Input } from "~/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectScrollDownButton,
+  SelectScrollUpButton,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+}from "~/components/ui/select";
 
 
 export async function loader(): Promise<LoaderArgs> {
@@ -70,8 +83,6 @@ export default function Layout() {
   }, []);
   "use client"
 
-
-
   return (
     <div className="flex flex-col h-screen">
     {/* Header on top */}
@@ -83,7 +94,6 @@ export default function Layout() {
             <div className="mb-2 text-xs text-gray-500">Checking authentication...</div>
           )}
           <h2 className="font-bold text-sm text-gray-500 mb-4">Strings</h2>
-
           <div className="flex-1 space-y-1 overflow-auto">
             {items.map(item => (
               <NavLink
@@ -100,7 +110,7 @@ export default function Layout() {
 
           {/* Add new string */}
           <Form method="post" className="mt-4">
-            <input
+            <Input
               type="text"
               name="text"
               placeholder="New string"

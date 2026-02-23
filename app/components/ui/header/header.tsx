@@ -1,6 +1,7 @@
 import { AvatarDropdown } from "./avatar-dropdown"
 
 export function Header() {
+
   return (
     <header className="border-b bg-background">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-2">
