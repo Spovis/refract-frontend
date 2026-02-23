@@ -7,6 +7,8 @@ import {
   deleteItem,
 } from "~/utils/backend";
 import Button from "~/src/general/Button";
+import { Input } from "~/components/ui/input";
+import { ButtonIcon} from "~/components/ui/buttons/arrow-button";
 
 //fetch all items and all languages we allow
 export async function loader() {
@@ -50,7 +52,7 @@ export default function ItemEditor() {
   return (
     <div className="space-y-4">
       <h1 className="text-lg font-bold">
-        Editing: {item.translations?.[0]?.text ?? "Untitled"}
+        {item.translations?.[0]?.text ?? "Untitled"}
       </h1>
 
       {/* Render translations for each language */}
@@ -60,10 +62,10 @@ export default function ItemEditor() {
       )?.text;
         return (
           <Form method="post" key={`${item.item_id}-${lang.language_id}`} className="flex items-center gap-2">
-            <input type="hidden" name="itemId" value={item.item_id} />
-            <input type="hidden" name="language" value={lang.language_id} />
-            <a>{lang.name}</a>
-            <input
+            <Input type="hidden" name="itemId" value={item.item_id} />
+            <Input type="hidden" name="language" value={lang.language_id} />
+            <a className="text-sm">{lang.name}</a>
+            <Input
               type="text"
               name="translation"
               defaultValue={translation ?? ""}
