@@ -1,7 +1,7 @@
 import { Outlet, NavLink, Form, useLoaderData, redirect } from "react-router";
 import { useEffect, useState } from "react";
 import type { LoaderArgs, ActionArgs } from "~/routes/+types";
-import { getItems, createItem, queueTranslations, BACKEND_URL } from "~/utils/backend";
+import { getItems, createItem, queueTranslations, importFromSource, BACKEND_URL } from "~/utils/backend";
 import Button from "~/src/general/Button";
 
 import {
@@ -46,6 +46,17 @@ export async function action({ request }: ActionArgs) {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       return { error: `Queue translations failed: ${message}` };
+    }
+  }
+
+  if (actionType === "import-from-source") {
+    try {
+      await importFromSource();
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      return { error: `Import from source failed: ${message}` };
     }
   }
 
@@ -154,6 +165,13 @@ export default function Layout() {
         <Form method="post" className="mt-4">
           <Button type="submit" name="_action" value="queue-translations" className="w-full">
             Queue Translations
+          </Button>
+        </Form>
+
+        {/* import from source */}
+        <Form method="post" className="mt-4">
+          <Button type="submit" name="_action" value="import-from-source" className="w-full">
+            Import From Source
           </Button>
         </Form>
       </aside>
