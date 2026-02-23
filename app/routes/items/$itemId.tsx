@@ -57,9 +57,9 @@ export default function ItemEditor() {
 
       {/* Render translations for each language */}
       {availableLanguages.map(lang => {
-        const translation = item.translations.find(
-          t => t.language_id === lang.language_id
-        )?.text;
+      const translation = item.translations.find(
+        (t: any) => t.language_id === Number(lang.language_id)
+      )?.text;
         return (
           <Form method="post" key={`${item.item_id}-${lang.language_id}`} className="flex items-center gap-2">
             <Input type="hidden" name="itemId" value={item.item_id} />
@@ -68,7 +68,7 @@ export default function ItemEditor() {
             <Input
               type="text"
               name="translation"
-              defaultValue={translation}
+              defaultValue={translation ?? ""}
               placeholder={`Enter translation..`}
               className="border p-2 rounded flex-1"
             />
@@ -87,9 +87,4 @@ export default function ItemEditor() {
         </Button>
       </Form>
     </div>
-  );
-}
-
-
-
-
+  );}
