@@ -4,6 +4,14 @@ import type { LoaderArgs, ActionArgs } from "~/routes/+types";
 import { getItems, createItem, queueTranslations, BACKEND_URL } from "~/utils/backend";
 import Button from "~/src/general/Button";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
+
 export async function loader(): Promise<LoaderArgs> {
   try {
     const items = await getItems();
@@ -47,6 +55,8 @@ export async function action({ request }: ActionArgs) {
 export default function Layout() {
   const { items } = useLoaderData<typeof loader>();
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [lang, setLang] = useState("all");
+
 
   useEffect(() => {
     // Check auth status on mount; if unauthorized, redirect to backend Google OAuth
@@ -74,7 +84,45 @@ export default function Layout() {
           <div className="mb-2 text-xs text-gray-500">Checking authentication...</div>
         )}
         <h2 className="font-bold text-sm text-gray-500 mb-4">Strings</h2>
+        <h3 className="text-xs font-medium text-gray-500 mb-2">Language</h3>
 
+        <Select value={lang} onValueChange={setLang}>
+  <SelectTrigger className="w-full mb-4">
+    <SelectValue placeholder="Select language" />
+  </SelectTrigger>
+
+  <SelectContent>
+  <SelectItem value="all">All Languages</SelectItem>
+
+  {/* English */}
+  <SelectItem value="en-US">🇺🇸 English (US)</SelectItem>
+  <SelectItem value="en-GB">🇬🇧 English (UK)</SelectItem>
+
+  {/* Spanish */}
+  <SelectItem value="es-ES">🇪🇸 Spanish (Spain)</SelectItem>
+  <SelectItem value="es-MX">🇲🇽 Spanish (Mexico)</SelectItem>
+
+  {/* French */}
+  <SelectItem value="fr-FR">🇫🇷 French (France)</SelectItem>
+  <SelectItem value="fr-CA">🇨🇦 French (Canada)</SelectItem>
+
+  {/* German */}
+  <SelectItem value="de-DE">🇩🇪 German (Germany)</SelectItem>
+  <SelectItem value="de-AT">🇦🇹 German (Austria)</SelectItem>
+
+  {/* Chinese */}
+  <SelectItem value="zh-CN">🇨🇳 Chinese (Simplified)</SelectItem>
+  <SelectItem value="zh-TW">🇹🇼 Chinese (Traditional)</SelectItem>
+
+  {/* Japanese */}
+  <SelectItem value="ja-JP">🇯🇵 Japanese</SelectItem>
+
+  {/* Korean */}
+  <SelectItem value="ko-KR">🇰🇷 Korean</SelectItem>
+</SelectContent>
+</Select>
+
+<div className="flex-1 space-y-1 overflow-auto"></div>
         <div className="flex-1 space-y-1 overflow-auto">
           {items.map(item => (
             <NavLink
@@ -112,7 +160,7 @@ export default function Layout() {
 
       {/* Right panel */}
       <main className="flex-1 p-6 overflow-auto">
-        <Outlet /> {/* Renders selected string editor */}
+      <Outlet context={{ lang }} /> {/* Renders selected string editor */}
       </main>
     </div>
   );
