@@ -81,3 +81,11 @@ export const importFromSource = async (): Promise<void> => {
     credentials: "include",
   });
 }
+
+export const searchStrings = async (query: string, language_ids: string[]): Promise<{ item_id: number; translations: { language_id: number; text: string }[] }[]> => {
+  const params = new URLSearchParams();
+  params.set("query", query);
+  params.set("language_ids", language_ids.join(","));
+  const response = await fetch(`${BASE}/search?${params.toString()}`.replace(/\/api\/api/, "/api/search"));
+  return response.json();
+}
