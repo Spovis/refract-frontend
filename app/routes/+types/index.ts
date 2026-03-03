@@ -1,10 +1,9 @@
 // routes/+types/index.ts
 
-
-export type LoaderData<T = any> = T;
+export type LoaderData<T = unknown> = T;
 export interface LoaderArgs {
-  items: any[]; // replace `any` with your actual item type — required
-  item?: any; // optional single item for item routes
+  items: unknown[];
+  item?: unknown;
   params?: Record<string, string>;
 }
 
@@ -26,5 +25,5 @@ export interface Route {
     params: Record<string, string>;
   };
   ComponentProps: ComponentProps;
-  MetaArgs: Record<string, any>;
+  MetaArgs: Record<string, unknown>;
 }
