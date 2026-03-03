@@ -6,7 +6,7 @@ export const BACKEND_URL = "";
 const BASE = BACKEND_URL || (typeof window === "undefined" ? "http://localhost:5002/api" : "");
 
 export const getItems = async (): Promise<
-  { item_id: number; translations: { language_id: number; text: string }[] }[]
+  { item_id: number; translations: { language_id: number; text: string; translation_id: number; approved: boolean }[] }[]
 > => {
   const response = await fetch(`${BASE}/items`.replace(/\/api\/api/, "/api/items"), { credentials: "include" });
   return response.json();
@@ -78,6 +78,13 @@ export const importFromSource = async (): Promise<void> => {
     headers: {
       "Content-Type": "application/json",
     },
+    credentials: "include",
+  });
+}
+
+export const approveTranslation = async (translation_id: string): Promise<void> => {
+  await fetch(`${BASE}/translations/approve/${translation_id}`.replace(/\/api\/api/, "/api/translations/approve/${translation_id}"), {
+    method: "PUT",
     credentials: "include",
   });
 }
