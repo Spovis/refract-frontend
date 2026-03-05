@@ -12,7 +12,7 @@ export function Header() {
             <a href="/dashboard" className="hover:text-foreground">
               Dashboard
             </a>
-            <a href="/projects" className="hover:text-foreground">
+            <a href="/items/all" className="hover:text-foreground">
               Database View
             </a>
           </nav>
