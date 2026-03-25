@@ -8,7 +8,7 @@ const BASE =
   (typeof window === 'undefined' ? 'http://localhost:5002/api' : '');
 
 export const getItems = async (): Promise<
-  { item_id: number; translations: { language_id: number; text: string }[] }[]
+  { item_id: number; translations: { language_id: number; text: string; translation_id: number; approved: boolean }[] }[]
 > => {
   const response = await fetch(
     `${BASE}/items`.replace(/\/api\/api/, '/api/items'),
@@ -97,7 +97,14 @@ export const importFromSource = async (): Promise<void> => {
     },
     credentials: 'include',
   });
-};
+}
+
+export const approveTranslation = async (translation_id: string): Promise<void> => {
+  await fetch(`${BASE}/translations/approve/${translation_id}`.replace(/\/api\/api/, "/api/translations/approve/${translation_id}"), {
+    method: "PUT",
+    credentials: "include",
+  });
+}
 
 export const searchStrings = async (
   query: string,

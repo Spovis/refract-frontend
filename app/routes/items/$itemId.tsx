@@ -5,9 +5,11 @@ import {
   getAvailableLanguages,
   putTranslation,
   deleteItem,
-} from '~/utils/backend';
-import Button from '~/src/general/Button';
-import { Input } from '~/components/ui/input';
+  approveTranslation,
+} from "~/utils/backend";
+import Button from "~/src/general/Button";
+import { Input } from "~/components/ui/input";
+import { ButtonIcon} from "~/components/ui/buttons/arrow-button";
 
 //fetch all items and all languages we allow
 export async function loader() {
@@ -32,7 +34,13 @@ export async function action({ request }: ActionArgs) {
       await putTranslation(itemId, languageId, translation);
       return { success: true };
     }
-    case 'DELETE_ITEM': {
+    case "APPROVE_TRANSLATION": {
+      const translationId = formData.get("translationId") as string;
+      if (!translationId) return { error: "Missing data" };
+      await approveTranslation(translationId);
+      return { success: true };
+    }
+    case "DELETE_ITEM": {
       await deleteItem(itemId);
       return { success: true };
     }
@@ -55,11 +63,13 @@ export default function ItemEditor() {
       </h1>
 
       {/* Render translations for each language */}
-      {availableLanguages.map((lang) => {
+      {availableLanguages.map(lang => {
         const translation = item.translations.find(
-          (t: { language_id: number; text?: string }) =>
-            t.language_id === Number(lang.language_id)
-        )?.text;
+          (t: any) => t.language_id === Number(lang.language_id)
+        );
+        if (translation?.approved) {
+          return null;
+        }
         return (
           <Form
             method="post"
@@ -67,21 +77,21 @@ export default function ItemEditor() {
             className="flex items-center gap-2"
           >
             <Input type="hidden" name="itemId" value={item.item_id} />
+            <Input type="hidden" name="translationId" value={translation?.translation_id} />
             <Input type="hidden" name="language" value={lang.language_id} />
             <a className="text-sm">{lang.name}</a>
             <Input
               type="text"
               name="translation"
-              defaultValue={translation ?? ''}
+              defaultValue={translation?.text ?? ""}
               placeholder={`Enter translation..`}
               className="border p-2 rounded flex-1"
             />
-            <Button
-              type="submit"
-              name="_action"
-              value="SAVE_TRANSLATION"
-              color="green"
-            >
+            {translation?.approved 
+            ? <Button disabled color="red">Approved</Button> : 
+            <Button type="submit" name="_action" value="APPROVE_TRANSLATION" color="blue">Approve</Button>
+            }
+            <Button type="submit" name="_action" value="SAVE_TRANSLATION" color="green">
               Save
             </Button>
           </Form>
