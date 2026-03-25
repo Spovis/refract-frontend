@@ -1,5 +1,5 @@
-import { Form, useLoaderData, useParams } from "react-router";
-import type { ActionArgs } from "~/routes/+types";
+import { Form, useLoaderData, useParams } from 'react-router';
+import type { ActionArgs } from '~/routes/+types';
 import {
   getItems,
   getAvailableLanguages,
@@ -21,16 +21,16 @@ export async function loader() {
 //save translation and delete functions
 export async function action({ request }: ActionArgs) {
   const formData = await request.formData();
-  const _action = formData.get("_action");
-  const itemId = formData.get("itemId") as string;
+  const _action = formData.get('_action');
+  const itemId = formData.get('itemId') as string;
 
-  if (!_action || !itemId) return { error: "Invalid form submission" };
+  if (!_action || !itemId) return { error: 'Invalid form submission' };
 
   switch (_action) {
-    case "SAVE_TRANSLATION": {
-      const languageId = formData.get("language") as string;
-      const translation = formData.get("translation") as string;
-      if (!languageId || !translation) return { error: "Missing data" };
+    case 'SAVE_TRANSLATION': {
+      const languageId = formData.get('language') as string;
+      const translation = formData.get('translation') as string;
+      if (!languageId || !translation) return { error: 'Missing data' };
       await putTranslation(itemId, languageId, translation);
       return { success: true };
     }
@@ -45,7 +45,7 @@ export async function action({ request }: ActionArgs) {
       return { success: true };
     }
     default:
-      return { error: "Unknown action" };
+      return { error: 'Unknown action' };
   }
 }
 
@@ -53,13 +53,13 @@ export default function ItemEditor() {
   const { items, availableLanguages } = useLoaderData<typeof loader>();
   const { itemId } = useParams();
 
-  const item = items.find(i => i.item_id.toString() === itemId);
+  const item = items.find((i) => i.item_id.toString() === itemId);
   if (!item) return <p>Item not found.</p>;
 
   return (
     <div className="space-y-4">
       <h1 className="text-lg font-bold">
-        {item.translations?.[0]?.text ?? "Untitled"}
+        {item.translations?.[0]?.text ?? 'Untitled'}
       </h1>
 
       {/* Render translations for each language */}
@@ -71,7 +71,11 @@ export default function ItemEditor() {
           return null;
         }
         return (
-          <Form method="post" key={`${item.item_id}-${lang.language_id}`} className="flex items-center gap-2">
+          <Form
+            method="post"
+            key={`${item.item_id}-${lang.language_id}`}
+            className="flex items-center gap-2"
+          >
             <Input type="hidden" name="itemId" value={item.item_id} />
             <Input type="hidden" name="translationId" value={translation?.translation_id} />
             <Input type="hidden" name="language" value={lang.language_id} />
@@ -102,4 +106,5 @@ export default function ItemEditor() {
         </Button>
       </Form>
     </div>
-  );}
+  );
+}

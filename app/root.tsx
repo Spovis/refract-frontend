@@ -5,55 +5,58 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-} from "react-router";
+} from 'react-router';
 
-import type { Route } from "./+types/root";
-import "./app.css";
+import type { Route } from './+types/root';
+import './app.css';
 
 export const links: Route.LinksFunction = () => [
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
+  { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
   {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
+    rel: 'preconnect',
+    href: 'https://fonts.gstatic.com',
+    crossOrigin: 'anonymous',
   },
   {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+    rel: 'stylesheet',
+    href: 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap',
   },
 ];
 
-import { createItem, queueTranslations, importFromSource } from "~/utils/backend";
-import type { ActionArgs } from "./+types/root";
-import { redirect } from "react-router";
+import {
+  createItem,
+  queueTranslations,
+  importFromSource,
+} from '~/utils/backend';
+import type { ActionArgs } from './+types/root';
+import { redirect } from 'react-router';
 
 export async function action({ request }: ActionArgs) {
   const formData = await request.formData();
-  const actionType = formData.get("_action");
+  const actionType = formData.get('_action');
 
-  if (actionType === "add-item") {
-    const text = formData.get("text");
-    if (!text || typeof text !== "string") return { error: "Text is required" };
+  if (actionType === 'add-item') {
+    const text = formData.get('text');
+    if (!text || typeof text !== 'string') return { error: 'Text is required' };
     try {
       const result = await createItem(text);
       if (result?.item_id) {
-        await queueTranslations((result.item_id).toString());
+        await queueTranslations(result.item_id.toString());
         return redirect(`/items/${result.item_id}`);
       }
-      return { error: "Failed to create item" };
+      return { error: 'Failed to create item' };
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown error";
+      const message = error instanceof Error ? error.message : 'Unknown error';
       return { error: `Create item failed: ${message}` };
     }
   }
 
-
-  if (actionType === "queue-translations") {
+  if (actionType === 'queue-translations') {
     await queueTranslations();
     return { success: true };
   }
 
-  if (actionType === "import-from-source") {
+  if (actionType === 'import-from-source') {
     await importFromSource();
     return { success: true };
   }
@@ -84,15 +87,15 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = "Oops!";
-  let details = "An unexpected error occurred.";
+  let message = 'Oops!';
+  let details = 'An unexpected error occurred.';
   let stack: string | undefined;
 
   if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? "404" : "Error";
+    message = error.status === 404 ? '404' : 'Error';
     details =
       error.status === 404
-        ? "The requested page could not be found."
+        ? 'The requested page could not be found.'
         : error.statusText || details;
   } else if (import.meta.env.DEV && error && error instanceof Error) {
     details = error.message;
