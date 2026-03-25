@@ -1,8 +1,6 @@
-
-
-import { redirect } from "react-router";
-import type { LoaderArgs } from "~/routes/+types";
-import { getItems } from "~/utils/backend";
+import { redirect } from 'react-router';
+import type { LoaderArgs } from '~/routes/+types';
+import { getItems } from '~/utils/backend';
 
 //show first item when loading
 export async function loader(): Promise<LoaderArgs | Response> {

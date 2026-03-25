@@ -1,8 +1,8 @@
-import { Form } from "react-router";
-import { homePageActions } from "~/routes/home";
-import Button from "./general/Button";
-import TextInput from "./general/TextInput";
-import { useRef } from "react";
+import { Form } from 'react-router';
+import { homePageActions } from '~/routes/home';
+import Button from './general/Button';
+import TextInput from './general/TextInput';
+import { useRef } from 'react';
 
 const ItemRow = ({
   item,
@@ -27,7 +27,7 @@ const ItemRow = ({
     );
 
     if (translationInputRef.current) {
-      translationInputRef.current.value = translation?.text || "";
+      translationInputRef.current.value = translation?.text || '';
       translationInputRef.current.focus();
     }
   };
