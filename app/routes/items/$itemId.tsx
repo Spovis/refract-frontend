@@ -12,10 +12,12 @@ import { Input } from "~/components/ui/input";
 import { ButtonIcon} from "~/components/ui/buttons/arrow-button";
 
 //fetch all items and all languages we allow
-export async function loader() {
+export async function loader({ request }: { request: Request }) {
+  const url = new URL(request.url);
+  const lang = url.searchParams.get('lang') ?? 'all';
   const items = await getItems();
   const availableLanguages = await getAvailableLanguages();
-  return { items, availableLanguages };
+  return { items, availableLanguages, lang };
 }
 
 //save translation and delete functions
@@ -50,7 +52,7 @@ export async function action({ request }: ActionArgs) {
 }
 
 export default function ItemEditor() {
-  const { items, availableLanguages } = useLoaderData<typeof loader>();
+  const { items, availableLanguages, lang } = useLoaderData<typeof loader>();
   const { itemId } = useParams();
 
   const item = items.find((i) => i.item_id.toString() === itemId);
@@ -63,23 +65,25 @@ export default function ItemEditor() {
       </h1>
 
       {/* Render translations for each language */}
-      {availableLanguages.map(lang => {
+      {availableLanguages
+      .filter((l: any) => lang === 'all' || String(l.language_id) === lang)
+      .map(l => {
         const translation = item.translations.find(
-          (t: any) => t.language_id === Number(lang.language_id)
+          (t: any) => t.language_id === Number(l.language_id)
         );
         if (translation?.approved) {
           return null;
-        }
+    }
         return (
           <Form
             method="post"
-            key={`${item.item_id}-${lang.language_id}`}
+            key={`${item.item_id}-${l.language_id}`}
             className="flex items-center gap-2"
           >
             <Input type="hidden" name="itemId" value={item.item_id} />
             <Input type="hidden" name="translationId" value={translation?.translation_id} />
-            <Input type="hidden" name="language" value={lang.language_id} />
-            <a className="text-sm">{lang.name}</a>
+            <Input type="hidden" name="language" value={l.language_id} />
+            <a className="text-sm">{l.name}</a>
             <Input
               type="text"
               name="translation"
