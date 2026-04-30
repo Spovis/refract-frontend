@@ -341,123 +341,125 @@ export default function Layout() {
     <div className="flex flex-col h-screen">
       <Header />
 
-      <div className="flex flex-1 overflow-hidden bg-[#F9F9F9]">
-        <aside className="w-1/3 max-w-[460px] border-r p-4 flex flex-col">
-          <div className="flex gap-1 mb-4">
-            <button
-              onClick={() => handleApprovalFilterChange(true)}
-              className={`flex-1 px-3 py-2 text-xs rounded-full transition-colors ${
-                showOnlyUnapproved
-                  ? 'bg-salmon text-white font-semibold'
-                  : 'bg-[#F0F0F0] hover:bg-lightgray'
-              }`}
-            >
-              New Keys
-            </button>
-            <button
-              onClick={() => handleApprovalFilterChange(false)}
-              className={`flex-1 px-3 py-2 text-xs rounded-full transition-colors ${
-                !showOnlyUnapproved
-                  ? 'bg-salmon text-white font-semibold'
-                  : 'bg-[#F0F0F0] hover:bg-lightgray'
-              }`}
-            >
-              Approved Keys
-            </button>
-          </div>
+      <div className="py-4 w-full bg-[#F9F9F9] border-b">
+        <div className="flex gap-1 items-start w-full max-w-7xl mx-auto pl-4">
+          <button
+            onClick={() => handleApprovalFilterChange(true)}
+            className={`flex w-fit px-3 py-2 text-xs rounded-full transition-colors cursor-pointer ${
+              showOnlyUnapproved
+                ? 'bg-salmon text-white font-semibold'
+                : 'bg-[#E0E0E0] hover:bg-lightgray'
+            }`}
+          >
+            New Keys
+          </button>
+          <button
+            onClick={() => handleApprovalFilterChange(false)}
+            className={`flex w-fit px-3 py-2 text-xs rounded-full transition-colors cursor-pointer ${
+              !showOnlyUnapproved
+                ? 'bg-salmon text-white font-semibold'
+                : 'bg-[#E0E0E0] hover:bg-lightgray'
+            }`}
+          >
+            Approved Keys
+          </button>
+        </div>
+      </div>
 
-          <div className="flex-1 space-y-3 overflow-auto pr-4">
-            {filteredItems.map((item) => (
-              <NavLink
-                key={item.item_id}
-                to={buildItemUrl(item.item_id)}
-                className={({ isActive }) =>
-                  `block rounded p-4 text-sm ${
-                    isActive ? 'text-black border border-lightgray bg-white' : 'bg-[#F5F5F5] border-1 border-lightgray text-gray-600 hover:bg-[#E6E6E6]'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <ListItem key={item.item_id} item={item} isActive={isActive} />
-                )}
-              </NavLink>
-            ))}
-            {filteredItems.length === 0 && (
-              <p className="px-2 py-1 text-sm text-gray-500">
-                No strings to show.
-              </p>
-            )}
-          </div>
-
-          <DropdownMenu>
-            <div className="flex items-start p-2">
-              <DropdownMenuTrigger>
-                <p className="px-4 py-2 bg-lightgray rounded-full cursor-pointer text-xs text-gray-600">More Actions</p>
-              </DropdownMenuTrigger>
+      <div className="bg-[#F9F9F9] w-full">
+        <div className="w-full max-w-7xl flex flex-1 overflow-hidden mx-auto">
+          <aside className="w-1/3 max-w-[460px] p-4 flex flex-col">
+            <div className="flex-1 space-y-3 overflow-auto pr-4">
+              {filteredItems.map((item) => (
+                <NavLink
+                  key={item.item_id}
+                  to={buildItemUrl(item.item_id)}
+                  className={({ isActive }) =>
+                    `block rounded p-4 text-sm ${
+                      isActive ? 'text-black border border-lightgray bg-white' : 'bg-[#F5F5F5] border-1 border-lightgray text-gray-600 hover:bg-[#E6E6E6]'
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <ListItem key={item.item_id} item={item} isActive={isActive} />
+                  )}
+                </NavLink>
+              ))}
+              {filteredItems.length === 0 && (
+                <p className="px-2 py-1 text-sm text-gray-500">
+                  No strings to show.
+                </p>
+              )}
             </div>
-            <DropdownMenuContent side="top">
-              <div className="w-full bg-white p-4">
 
-              <Select value={lang} onValueChange={handleLanguageChange}>
-                <SelectTrigger className="w-full mt-4">
-                  <SelectValue placeholder="Select language" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value={ALL_LANGUAGES}>All Languages</SelectItem>
-                  {availableLanguages.map((language) => (
-                    <SelectItem
-                      key={language.language_id}
-                      value={language.language_id}
-                    >
-                      {language.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Form method="post" action="/" className="mt-4">
-                <Input
-                  type="text"
-                  name="text"
-                  placeholder="New string"
-                  className="w-full border rounded p-2 mb-2"
-                />
-                <Button type="submit" name="_action" value="add-item" className="w-full">
-                  Add Item
-                </Button>
-              </Form>
-
-              <Form method="post" action="/" className="mt-4">
-                <Button
-                  type="submit"
-                  name="_action"
-                  value="queue-translations"
-                  className="w-full"
-                >
-                  Queue Translations
-                </Button>
-              </Form>
-
-              <Form method="post" action="/" className="mt-4">
-                <Button
-                  type="submit"
-                  name="_action"
-                  value="import-from-source"
-                  className="w-full"
-                >
-                  Import From Source
-                </Button>
-              </Form>
+            <DropdownMenu>
+              <div className="flex items-start p-2">
+                <DropdownMenuTrigger>
+                  <p className="px-4 py-2 bg-lightgray rounded-full cursor-pointer text-xs text-gray-600">More Actions</p>
+                </DropdownMenuTrigger>
               </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              <DropdownMenuContent side="top">
+                <div className="w-full bg-white p-4">
 
-        </aside>
+                <Select value={lang} onValueChange={handleLanguageChange}>
+                  <SelectTrigger className="w-full mt-4">
+                    <SelectValue placeholder="Select language" />
+                  </SelectTrigger>
 
-        <main className="flex-1 max-w-3xl p-6 overflow-auto">
-          <Outlet context={{ lang }} />
-        </main>
+                  <SelectContent>
+                    <SelectItem value={ALL_LANGUAGES}>All Languages</SelectItem>
+                    {availableLanguages.map((language) => (
+                      <SelectItem
+                        key={language.language_id}
+                        value={language.language_id}
+                      >
+                        {language.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Form method="post" action="/" className="mt-4">
+                  <Input
+                    type="text"
+                    name="text"
+                    placeholder="New string"
+                    className="w-full border rounded p-2 mb-2"
+                  />
+                  <Button type="submit" name="_action" value="add-item" className="w-full">
+                    Add Item
+                  </Button>
+                </Form>
+
+                <Form method="post" action="/" className="mt-4">
+                  <Button
+                    type="submit"
+                    name="_action"
+                    value="queue-translations"
+                    className="w-full"
+                  >
+                    Queue Translations
+                  </Button>
+                </Form>
+
+                <Form method="post" action="/" className="mt-4">
+                  <Button
+                    type="submit"
+                    name="_action"
+                    value="import-from-source"
+                    className="w-full"
+                  >
+                    Import From Source
+                  </Button>
+                </Form>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </aside>
+          <main className="flex-1 p-4 overflow-auto">
+            <Outlet context={{ lang }} />
+          </main>
+        </div>
       </div>
     </div>
   );

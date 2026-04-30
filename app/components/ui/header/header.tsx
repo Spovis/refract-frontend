@@ -13,7 +13,7 @@ export function Header() {
 
   return (
     <header className="border-b bg-background">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-8">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4">
         {/* Left side */}
         <div className="flex items-center gap-6">
           <div className="flex flex-col items-center">

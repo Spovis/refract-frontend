@@ -103,10 +103,10 @@ export default function ItemEditor() {
   });
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-lg font-bold">
+    <div className="bg-white p-4 rounded-lg border border-lightgray w-full">
+      <p className="">
         {item.translations?.[0]?.text ?? 'Untitled'}
-      </h1>
+      </p>
 
       {languagesToShow.map((language) => {
         const langId = Number(language.language_id);
@@ -136,10 +136,7 @@ export default function ItemEditor() {
         const isEnglish = langId === 1;
 
         return (
-          <div
-            key={`${item.item_id}-${language.language_id}`}
-            className="border rounded-lg p-4 bg-card"
-          >
+          <div key={`${item.item_id}-${language.language_id}`} >
             <Form method="post" className="space-y-3">
               <Input type="hidden" name="itemId" value={item.item_id} />
               <Input
@@ -153,25 +150,26 @@ export default function ItemEditor() {
                 value={language.language_id}
               />
 
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  {language.name}
-                  {!!translation?.approved && (
-                    <span className="ml-2 inline-flex items-center">
-                      <span className="flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] text-white">
-                        ✓
-                      </span>
-                    </span>
-                  )}
-                </h3>
+              <div className="flex flex-col gap-4 mt-4">
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="translation" className="text-sm font-medium">Translation</label>
+                  <Textarea
+                    autoResize
+                    name="translation"
+                    defaultValue={translation?.text ?? ''}
+                    placeholder="Enter translation..."
+                    className="border p-2 rounded"
+                    disabled={isEnglish}
+                  />
+                </div>
 
                 {!isEnglish && (
-                  <div className="flex shrink-0 gap-2">
+                  <div className="flex justify-between shrink-0 gap-2">
                     <Button
                       type="submit"
                       name="_action"
                       value="SAVE_TRANSLATION"
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      className="bg-darkgray hover:bg-darkgray/90 text-white"
                     >
                       Save
                     </Button>
@@ -181,36 +179,20 @@ export default function ItemEditor() {
                       value="APPROVE_TRANSLATION"
                       className={
                         translation?.approved
-                          ? 'bg-gray-600 hover:bg-gray-700 text-white'
-                          : 'bg-blue-600 hover:bg-blue-700 text-white'
+                          ? 'bg-darkgray cursor-pointer text-white hover:bg-darkgray/90'
+                          : 'bg-salmon cursor-pointer hover:bg-salmon/90 text-white'
                       }
                       disabled={!translation?.translation_id}
                     >
-                      {translation?.approved ? 'Unapprove' : 'Approve'}
+                      {translation?.approved ? 'Unapprove' : '✓ Approve'}
                     </Button>
                   </div>
                 )}
               </div>
-
-              <Textarea
-                autoResize
-                name="translation"
-                defaultValue={translation?.text ?? ''}
-                placeholder="Enter translation..."
-                className="border p-2 rounded"
-                disabled={isEnglish}
-              />
             </Form>
           </div>
         );
       })}
-
-      <Form method="post">
-        <input type="hidden" name="itemId" value={item.item_id} />
-        <Button type="submit" name="_action" value="DELETE_ITEM" color="red">
-          Delete Item
-        </Button>
-      </Form>
     </div>
   );
 }
