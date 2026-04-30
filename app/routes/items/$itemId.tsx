@@ -169,7 +169,7 @@ export default function ItemEditor() {
                       type="submit"
                       name="_action"
                       value="SAVE_TRANSLATION"
-                      className="bg-darkgray hover:bg-darkgray/90 text-white"
+                      className="bg-darkgray hover:bg-darkgray/90 text-white rounded-full"
                     >
                       Save
                     </Button>
@@ -179,8 +179,8 @@ export default function ItemEditor() {
                       value="APPROVE_TRANSLATION"
                       className={
                         translation?.approved
-                          ? 'bg-darkgray cursor-pointer text-white hover:bg-darkgray/90'
-                          : 'bg-salmon cursor-pointer hover:bg-salmon/90 text-white'
+                          ? 'bg-darkgray cursor-pointer text-white hover:bg-darkgray/90 rounded-full'
+                          : 'bg-salmon cursor-pointer hover:bg-salmon/90 text-white rounded-full'
                       }
                       disabled={!translation?.translation_id}
                     >
