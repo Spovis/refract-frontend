@@ -1,4 +1,11 @@
-import { Form, useLoaderData, useParams } from 'react-router';
+import {
+  Form,
+  redirectDocument,
+  useActionData,
+  useLoaderData,
+  useParams,
+  useSearchParams,
+} from 'react-router';
 import type { ActionArgs } from '~/routes/+types';
 import {
   getItems,
@@ -6,20 +13,41 @@ import {
   putTranslation,
   deleteItem,
   approveTranslation,
+  getAuthStatus,
+  GOOGLE_AUTH_URL,
 } from "~/utils/backend";
 import Button from "~/src/general/Button";
 import { Input } from "~/components/ui/input";
 import { ButtonIcon} from "~/components/ui/buttons/arrow-button";
 
+type ItemActionData =
+  | {
+      success: true;
+      action: 'SAVE_TRANSLATION';
+      itemId: string;
+      languageId: string;
+    }
+  | {
+      success: true;
+      action: 'APPROVE_TRANSLATION' | 'DELETE_ITEM';
+      itemId: string;
+    }
+  | { success?: false; error: string };
+
 //fetch all items and all languages we allow
-export async function loader() {
-  const items = await getItems();
-  const availableLanguages = await getAvailableLanguages();
+export async function loader({ request }: { request: Request }) {
+  const authStatus = await getAuthStatus(request);
+  if (!authStatus.ok) {
+    throw redirectDocument(GOOGLE_AUTH_URL);
+  }
+
+  const items = await getItems(request);
+  const availableLanguages = await getAvailableLanguages(request);
   return { items, availableLanguages };
 }
 
 //save translation and delete functions
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionArgs): Promise<ItemActionData> {
   const formData = await request.formData();
   const _action = formData.get('_action');
   const itemId = formData.get('itemId') as string;
@@ -31,18 +59,18 @@ export async function action({ request }: ActionArgs) {
       const languageId = formData.get('language') as string;
       const translation = formData.get('translation') as string;
       if (!languageId || !translation) return { error: 'Missing data' };
-      await putTranslation(itemId, languageId, translation);
-      return { success: true };
+      await putTranslation(itemId, languageId, translation, request);
+      return { success: true, action: 'SAVE_TRANSLATION', itemId, languageId };
     }
     case "APPROVE_TRANSLATION": {
       const translationId = formData.get("translationId") as string;
       if (!translationId) return { error: "Missing data" };
-      await approveTranslation(translationId);
-      return { success: true };
+      await approveTranslation(translationId, request);
+      return { success: true, action: 'APPROVE_TRANSLATION', itemId };
     }
     case "DELETE_ITEM": {
-      await deleteItem(itemId);
-      return { success: true };
+      await deleteItem(itemId, request);
+      return { success: true, action: 'DELETE_ITEM', itemId };
     }
     default:
       return { error: 'Unknown action' };
@@ -51,10 +79,36 @@ export async function action({ request }: ActionArgs) {
 
 export default function ItemEditor() {
   const { items, availableLanguages } = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
   const { itemId } = useParams();
+  const [searchParams] = useSearchParams();
 
   const item = items.find((i) => i.item_id.toString() === itemId);
   if (!item) return <p>Item not found.</p>;
+
+  // Get filter parameters from URL
+  const langFilter = searchParams.get('lang');
+  const showApproved =
+    searchParams.get('view') === 'approved' ||
+    searchParams.get('showAll') === 'true';
+
+  const selectedLangId = langFilter ? Number(langFilter) || null : null;
+
+  // Filter languages to show
+  const languagesToShow = availableLanguages.filter(lang => {
+    const langId = Number(lang.language_id);
+    
+    // Always show English
+    if (langId === 1) return true;
+    
+    // If a specific language is selected, only show English and that language
+    if (selectedLangId && selectedLangId !== 1) {
+      return langId === selectedLangId;
+    }
+    
+    // Otherwise show all languages
+    return true;
+  });
 
   return (
     <div className="space-y-4">
@@ -62,39 +116,93 @@ export default function ItemEditor() {
         {item.translations?.[0]?.text ?? 'Untitled'}
       </h1>
 
-      {/* Render translations for each language */}
-      {availableLanguages.map(lang => {
+      {/* Render translations for filtered languages */}
+      {languagesToShow.map(lang => {
+        const langId = Number(lang.language_id);
         const translation = item.translations.find(
-          (t: any) => t.language_id === Number(lang.language_id)
+          (t: any) => t.language_id === langId
         );
-        if (translation?.approved) {
+        const wasJustSavedInApproved =
+          showApproved &&
+          actionData?.success &&
+          actionData.action === 'SAVE_TRANSLATION' &&
+          actionData.itemId === itemId &&
+          actionData.languageId === String(lang.language_id);
+        
+        // English stays visible as the source string in both approval views.
+        if (
+          showApproved &&
+          langId !== 1 &&
+          !translation?.approved &&
+          !wasJustSavedInApproved
+        ) {
           return null;
         }
+
+        if (
+          !showApproved &&
+          translation?.approved &&
+          langId !== 1
+        ) {
+          return null;
+        }
+        
+        const isEnglish = langId === 1;
+        
         return (
-          <Form
-            method="post"
-            key={`${item.item_id}-${lang.language_id}`}
-            className="flex items-center gap-2"
-          >
-            <Input type="hidden" name="itemId" value={item.item_id} />
-            <Input type="hidden" name="translationId" value={translation?.translation_id} />
-            <Input type="hidden" name="language" value={lang.language_id} />
-            <a className="text-sm">{lang.name}</a>
-            <Input
-              type="text"
-              name="translation"
-              defaultValue={translation?.text ?? ""}
-              placeholder={`Enter translation..`}
-              className="border p-2 rounded flex-1"
-            />
-            {translation?.approved 
-            ? <Button disabled color="red">Approved</Button> : 
-            <Button type="submit" name="_action" value="APPROVE_TRANSLATION" color="blue">Approve</Button>
-            }
-            <Button type="submit" name="_action" value="SAVE_TRANSLATION" color="green">
-              Save
-            </Button>
-          </Form>
+          <div key={`${item.item_id}-${lang.language_id}`} className="border rounded-lg p-4 bg-card">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">
+              {lang.name}
+              {!!translation?.approved && (
+                <span className="ml-2 inline-flex items-center">
+                  <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                    <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </span>
+              )}
+            </h3>
+            
+            <Form method="post" className="flex items-center gap-2">
+              <Input type="hidden" name="itemId" value={item.item_id} />
+              <Input type="hidden" name="translationId" value={translation?.translation_id} />
+              <Input type="hidden" name="language" value={lang.language_id} />
+              
+              <Input
+                type="text"
+                name="translation"
+                defaultValue={translation?.text ?? ""}
+                placeholder={`Enter translation...`}
+                className="border p-2 rounded flex-1"
+                disabled={isEnglish} // English is read-only
+              />
+              
+              {!isEnglish && (
+                <>
+                  <Button 
+                    type="submit" 
+                    name="_action" 
+                    value="SAVE_TRANSLATION" 
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Save
+                  </Button>
+                  {translation?.approved 
+                    ? <Button disabled className="bg-gray-400 text-white cursor-not-allowed">Approved</Button> : 
+                    <Button 
+                      type="submit" 
+                      name="_action" 
+                      value="APPROVE_TRANSLATION" 
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      Approve
+                    </Button>
+                  }
+                </>
+              )}
+            </Form>
+          </div>
         );
       })}
 

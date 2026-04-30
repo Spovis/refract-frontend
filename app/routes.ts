@@ -4,6 +4,7 @@ export default [
   route('', 'routes/+layout.tsx', [
     index('routes/home.tsx'),
     route('items/:itemId', 'routes/items/$itemId.tsx'),
-    route('items/all', 'routes/items/all.tsx'),
+    route('settings', 'routes/settings.tsx'),
   ]),
+  route('items/all', 'routes/items/all.tsx'),
 ] satisfies RouteConfig;

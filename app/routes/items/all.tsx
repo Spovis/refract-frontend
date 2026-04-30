@@ -1,6 +1,16 @@
-import { useLoaderData, useSearchParams } from 'react-router';
+import {
+  redirectDocument,
+  useLoaderData,
+  useSearchParams,
+} from 'react-router';
 import { useMemo, useState } from 'react';
-import { getItems, getAvailableLanguages } from '~/utils/backend';
+import {
+  getItems,
+  getAvailableLanguages,
+  getUserPreferences,
+  getAuthStatus,
+  GOOGLE_AUTH_URL,
+} from '~/utils/backend';
 import { Input } from '~/components/ui/input';
 import {
   Select,
@@ -10,26 +20,38 @@ import {
   SelectValue,
 } from '~/components/ui/select';
 import Button from '~/src/general/Button';
+import { Header } from '~/components/ui/header/header';
 
 const ENGLISH_ID = 1;
 
-type Translation = { language_id: number; text: string };
+type Translation = { language_id: number; text: string; approved: boolean };
 type Item = { item_id: number; translations: Translation[] };
 type Language = { language_id: string; code: string; name: string };
 
-export async function loader() {
-  const [items, availableLanguages] = await Promise.all([
-    getItems(),
-    getAvailableLanguages(),
+export async function loader({ request }: { request: Request }) {
+  const authStatus = await getAuthStatus(request);
+  if (!authStatus.ok) {
+    throw redirectDocument(GOOGLE_AUTH_URL);
+  }
+
+  const [items, availableLanguages, userPreferences] = await Promise.all([
+    getItems(request),
+    getAvailableLanguages(request),
+    getUserPreferences(request).catch(() => ({ preferred_language_id: ENGLISH_ID })), // fallback to English if error
   ]);
   return {
     items: Array.isArray(items) ? items : [],
     availableLanguages: availableLanguages ?? [],
+    userPreferences,
   };
 }
 
 function getText(item: Item, languageId: number): string | undefined {
   return item.translations.find((t) => t.language_id === languageId)?.text;
+}
+
+function getApprovalStatus(item: Item, languageId: number): boolean {
+  return item.translations.find((t) => t.language_id === languageId)?.approved ?? false;
 }
 
 function matchesSearch(item: Item, query: string, langId: number): boolean {
@@ -39,12 +61,12 @@ function matchesSearch(item: Item, query: string, langId: number): boolean {
 }
 
 export default function AllItems() {
-  const { items, availableLanguages } = useLoaderData<typeof loader>();
+  const { items, availableLanguages, userPreferences } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
   const [languageId, setLanguageId] = useState<string>(
-    () => searchParams.get('lang') ?? String(availableLanguages[0]?.language_id ?? ENGLISH_ID)
+    () => searchParams.get('lang') ?? String(userPreferences?.preferred_language_id ?? availableLanguages[0]?.language_id ?? ENGLISH_ID)
   );
   const [showSources, setShowSources] = useState(
     () => searchParams.get('sources') === '1'
@@ -75,9 +97,11 @@ export default function AllItems() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-muted/30">
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-start gap-4 p-4 border-b bg-background">
+    <div className="flex flex-col h-screen">
+      <Header />
+      <div className="flex-1 flex flex-col bg-muted/30">
+        {/* Toolbar */}
+        <div className="flex flex-wrap items-start gap-4 p-4 border-b bg-background">
         <div className="flex flex-col gap-2 min-w-[200px] max-w-[360px]">
           <Input
             type="search"
@@ -124,6 +148,8 @@ export default function AllItems() {
           {filtered.map((item: Item) => {
             const targetText = getText(item, langIdNum);
             const englishText = getText(item, ENGLISH_ID);
+            const targetApproved = getApprovalStatus(item, langIdNum);
+            const englishApproved = getApprovalStatus(item, ENGLISH_ID);
             return (
               <div
                 key={item.item_id}
@@ -133,32 +159,63 @@ export default function AllItems() {
                   <div className="space-y-3">
                     {langIdNum === ENGLISH_ID ? (
                       englishText != null && (
-                        <div>
-                          <p className="text-xs font-medium text-muted-foreground mb-1">
-                            English
-                          </p>
-                          <p className="text-sm">{englishText}</p>
-                        </div>
-                      )
-                    ) : (
-                      <>
-                        {englishText != null && (
-                          <div>
+                        <div className="flex items-start gap-2">
+                          {englishApproved ? (
+                            <div className="mt-0.5 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                              <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                          ) : (
+                            <div className="mt-0.5 w-4 h-4 bg-gray-400 rounded-full"></div>
+                          )}
+                          <div className="flex-1">
                             <p className="text-xs font-medium text-muted-foreground mb-1">
                               English
                             </p>
                             <p className="text-sm">{englishText}</p>
                           </div>
+                        </div>
+                      )
+                    ) : (
+                      <>
+                        {englishText != null && (
+                          <div className="flex items-start gap-2">
+                            {!!englishApproved && (
+                              <div className="mt-0.5 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                                <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <p className="text-xs font-medium text-muted-foreground mb-1">
+                                English
+                              </p>
+                              <p className="text-sm">{englishText}</p>
+                            </div>
+                          </div>
                         )}
                         {targetText != null && (
-                          <div>
-                            <p className="text-xs font-medium text-muted-foreground mb-1">
-                              {availableLanguages.find(
-                                (l: Language) =>
-                                  String(l.language_id) === String(langIdNum)
-                              )?.name ?? 'Translation'}
-                            </p>
-                            <p className="text-sm">{targetText}</p>
+                          <div className="flex items-start gap-2">
+                            {targetApproved ? (
+                              <div className="mt-0.5 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                                <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            ) : (
+                              <div className="mt-0.5 w-4 h-4 bg-gray-400 rounded-full"></div>
+                            )}
+                            <div className="flex-1">
+                              <p className="text-xs font-medium text-muted-foreground mb-1">
+                                {availableLanguages.find(
+                                  (l: Language) =>
+                                    String(l.language_id) === String(langIdNum)
+                                )?.name ?? 'Translation'}
+                              </p>
+                              <p className="text-sm">{targetText}</p>
+                            </div>
                           </div>
                         )}
                       </>
@@ -170,13 +227,24 @@ export default function AllItems() {
                     )}
                   </div>
                 ) : (
-                  <p className="text-sm">
-                    {targetText ?? (
-                      <span className="text-muted-foreground">
-                        No translation
-                      </span>
+                  <div className="flex items-start gap-2">
+                    {targetApproved ? (
+                      <div className="mt-0.5 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    ) : (
+                      <div className="mt-0.5 w-4 h-4 bg-gray-400 rounded-full"></div>
                     )}
-                  </p>
+                    <p className="text-sm flex-1">
+                      {targetText ?? (
+                        <span className="text-muted-foreground">
+                          No translation
+                        </span>
+                      )}
+                    </p>
+                  </div>
                 )}
               </div>
             );
@@ -189,5 +257,6 @@ export default function AllItems() {
         )}
       </div>
     </div>
+  </div>
   );
 }

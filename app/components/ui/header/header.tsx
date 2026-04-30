@@ -1,4 +1,5 @@
 import { AvatarDropdown } from './avatar-dropdown';
+import { Link } from 'react-router';
 
 export function Header() {
   return (
@@ -9,12 +10,12 @@ export function Header() {
           <span className="text-lg font-semibold">Refract</span>
 
           <nav className="hidden md:flex gap-4 text-sm text-muted-foreground">
-            <a href="/dashboard" className="hover:text-foreground">
+            <Link to="/" className="hover:text-foreground">
               Dashboard
-            </a>
-            <a href="/items/all" className="hover:text-foreground">
+            </Link>
+            <Link to="/items/all" className="hover:text-foreground">
               Database View
-            </a>
+            </Link>
           </nav>
         </div>
 

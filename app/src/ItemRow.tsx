@@ -1,8 +1,12 @@
 import { Form } from 'react-router';
-import { homePageActions } from '~/routes/home';
 import Button from './general/Button';
 import TextInput from './general/TextInput';
 import { useRef } from 'react';
+
+const homePageActions = {
+  deleteItem: 'DELETE_ITEM',
+  saveTranslation: 'SAVE_TRANSLATION',
+};
 
 const ItemRow = ({
   item,
