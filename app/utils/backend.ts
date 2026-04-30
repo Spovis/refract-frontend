@@ -2,7 +2,8 @@
 // For server-side (SSR) we fall back to an absolute backend URL.
 export const BACKEND_URL = '';
 export const BACKEND_ORIGIN = BACKEND_URL || 'http://localhost:5002';
-export const GOOGLE_AUTH_URL = `${BACKEND_ORIGIN}/auth/google`;
+// Relative so SSR 302s land on the user's origin (nginx proxies /auth to Flask).
+export const GOOGLE_AUTH_URL = '/auth/google';
 
 // Use /api prefix in browser; for SSR (node) fall back to absolute backend URL
 const BASE =
