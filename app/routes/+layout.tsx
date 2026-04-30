@@ -369,7 +369,7 @@ export default function Layout() {
       <div className="bg-[#F9F9F9] w-full">
         <div className="w-full max-w-7xl flex flex-1 overflow-hidden mx-auto">
           <aside className="w-1/3 max-w-[460px] p-4 flex flex-col">
-            <div className="flex-1 space-y-3 overflow-auto pr-4">
+            <div className="flex-1 space-y-3 max-h-[calc(100vh-226px)] overflow-auto pr-4">
               {filteredItems.map((item) => (
                 <NavLink
                   key={item.item_id}

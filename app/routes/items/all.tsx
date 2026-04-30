@@ -111,25 +111,25 @@ export default function AllItems() {
   };
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen bg-[#F9F9F9]">
       <Header />
-      <div className="flex-1 flex flex-col bg-muted/30">
+      <div className="flex flex-col w-full max-w-7xl mx-auto">
         {/* Toolbar */}
-        <div className="flex flex-wrap items-start gap-4 p-4 border-b bg-background">
+        <div className="flex flex-wrap items-start gap-4 p-4">
         <div className="flex flex-col gap-2 min-w-[200px] max-w-[360px]">
           <Input
             type="search"
             placeholder="Search here"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="rounded-full px-4"
+            className="rounded-full px-4 bg-white"
           />
           <div className="flex items-center gap-2">
             <label className="text-xs text-muted-foreground self-center">
               Language
             </label>
             <Select value={languageId} onValueChange={handleLangChange}>
-              <SelectTrigger className="w-[280px] max-w-full">
+              <SelectTrigger className="w-[280px] max-w-full bg-white">
                 <SelectValue placeholder="Select language" />
               </SelectTrigger>
               <SelectContent>
@@ -148,8 +148,8 @@ export default function AllItems() {
         <div className="flex items-center gap-2">
           <Button
             type="button"
-            variant={showSources ? 'default' : 'outline'}
             onClick={handleSourcesToggle}
+            className="bg-salmon text-white font-semibold hover:bg-salmon/90 cursor-pointer rounded-full"
           >
             Show sources
           </Button>
@@ -157,8 +157,8 @@ export default function AllItems() {
       </div>
 
       {/* Cards grid */}
-      <div className="flex-1 overflow-auto p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
+      <div className="flex-1 max-h-[calc(100vh-195px)] overflow-auto p-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-7xl">
           {filtered.map((item: Item) => {
             const targetText = getText(item, langIdNum);
             const englishText = getText(item, ENGLISH_ID);
