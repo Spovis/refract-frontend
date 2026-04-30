@@ -55,11 +55,12 @@ type LayoutLoaderData = {
   preferredLanguageId: string;
 };
 
-export async function loader({ request }: { request: Request }): Promise<LayoutLoaderData> {
+export async function loader({
+  request,
+}: {
+  request: Request;
+}): Promise<LayoutLoaderData> {
   const authStatus = await getAuthStatus(request);
-  if (authStatus.status === 401) {
-    throw redirectDocument(GOOGLE_AUTH_URL);
-  }
   if (!authStatus.ok) {
     throw redirectDocument(GOOGLE_AUTH_URL);
   }
@@ -133,12 +134,11 @@ export default function Layout() {
     useLoaderData<typeof loader>();
   const location = useLocation();
   const navigate = useNavigate();
-  const initialLanguage =
-    availableLanguages.some(
-      (language) => language.language_id === preferredLanguageId
-    )
-      ? preferredLanguageId
-      : ALL_LANGUAGES;
+  const initialLanguage = availableLanguages.some(
+    (language) => language.language_id === preferredLanguageId
+  )
+    ? preferredLanguageId
+    : ALL_LANGUAGES;
   const initialShowOnlyUnapproved = !(
     new URLSearchParams(location.search).get('view') === 'approved' ||
     new URLSearchParams(location.search).get('showAll') === 'true'
@@ -149,32 +149,32 @@ export default function Layout() {
   );
   const previousFilteredItemIds = useRef<number[]>([]);
 
-  const syncCurrentItemFilters = useCallback((
-    nextLang: string,
-    nextShowOnlyUnapproved: boolean
-  ) => {
-    if (!location.pathname.startsWith('/items/')) return;
-    if (location.pathname === '/items/all') return;
+  const syncCurrentItemFilters = useCallback(
+    (nextLang: string, nextShowOnlyUnapproved: boolean) => {
+      if (!location.pathname.startsWith('/items/')) return;
+      if (location.pathname === '/items/all') return;
 
-    const params = new URLSearchParams(location.search);
-    if (nextLang === ALL_LANGUAGES) {
-      params.delete('lang');
-    } else {
-      params.set('lang', nextLang);
-    }
+      const params = new URLSearchParams(location.search);
+      if (nextLang === ALL_LANGUAGES) {
+        params.delete('lang');
+      } else {
+        params.set('lang', nextLang);
+      }
 
-    params.delete('showAll');
-    if (nextShowOnlyUnapproved) {
-      params.delete('view');
-    } else {
-      params.set('view', 'approved');
-    }
+      params.delete('showAll');
+      if (nextShowOnlyUnapproved) {
+        params.delete('view');
+      } else {
+        params.set('view', 'approved');
+      }
 
-    const queryString = params.toString();
-    navigate(`${location.pathname}${queryString ? `?${queryString}` : ''}`, {
-      replace: true,
-    });
-  }, [location.pathname, location.search, navigate]);
+      const queryString = params.toString();
+      navigate(`${location.pathname}${queryString ? `?${queryString}` : ''}`, {
+        replace: true,
+      });
+    },
+    [location.pathname, location.search, navigate]
+  );
 
   const handleLanguageChange = (nextLang: string) => {
     setLang(nextLang);
@@ -195,14 +195,14 @@ export default function Layout() {
 
   useEffect(() => {
     const handlePreferredLanguageUpdate = (event: Event) => {
-      const preferredLanguageId = (event as CustomEvent<string>).detail;
+      const nextPreferredLanguageId = (event as CustomEvent<string>).detail;
       if (
         availableLanguages.some(
-          (language) => language.language_id === preferredLanguageId
+          (language) => language.language_id === nextPreferredLanguageId
         )
       ) {
-        setLang(preferredLanguageId);
-        syncCurrentItemFilters(preferredLanguageId, showOnlyUnapproved);
+        setLang(nextPreferredLanguageId);
+        syncCurrentItemFilters(nextPreferredLanguageId, showOnlyUnapproved);
       }
     };
 
@@ -218,7 +218,6 @@ export default function Layout() {
     };
   }, [availableLanguages, showOnlyUnapproved, syncCurrentItemFilters]);
 
-  // Filter items based on selected language and approval status
   const filteredItems = useMemo(
     () =>
       items.filter((item) => {
@@ -262,6 +261,7 @@ export default function Layout() {
 
           return nonEnglishLanguageIds.some(hasApprovedLanguage);
         }
+
         const selectedLangId = Number(lang);
         if (!selectedLangId) return true;
 
@@ -328,22 +328,19 @@ export default function Layout() {
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Header */}
       <Header />
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Left panel */}
         <aside className="w-72 border-r p-4 flex flex-col">
           <h2 className="font-bold text-sm text-gray-500 mb-4">Strings</h2>
 
-          {/* Approval Status Toggle */}
           <h3 className="text-xs font-medium text-gray-500 mb-2">View</h3>
           <div className="flex gap-1 mb-4 border rounded-md p-1 bg-gray-50">
             <button
               onClick={() => handleApprovalFilterChange(true)}
               className={`flex-1 px-3 py-1 text-xs rounded transition-colors ${
-                showOnlyUnapproved 
-                  ? 'bg-white text-gray-900 shadow-sm' 
+                showOnlyUnapproved
+                  ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -352,8 +349,8 @@ export default function Layout() {
             <button
               onClick={() => handleApprovalFilterChange(false)}
               className={`flex-1 px-3 py-1 text-xs rounded transition-colors ${
-                !showOnlyUnapproved 
-                  ? 'bg-white text-gray-900 shadow-sm' 
+                !showOnlyUnapproved
+                  ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -361,9 +358,7 @@ export default function Layout() {
             </button>
           </div>
 
-          {/* Language Selector */}
           <h3 className="text-xs font-medium text-gray-500 mb-2">Language</h3>
-
           <Select value={lang} onValueChange={handleLanguageChange}>
             <SelectTrigger className="w-full mb-4">
               <SelectValue placeholder="Select language" />
@@ -382,25 +377,20 @@ export default function Layout() {
             </SelectContent>
           </Select>
 
-          {/* Strings List */}
           <div className="flex-1 space-y-1 overflow-auto">
-            {filteredItems.map((item) => {
-              const to = buildItemUrl(item.item_id);
-              
-              return (
-                <NavLink
-                  key={item.item_id}
-                  to={to}
-                  className={({ isActive }) =>
-                    `block rounded px-2 py-1 text-sm ${
-                      isActive ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'
-                    }`
-                  }
-                >
-                  {item.translations?.[0]?.text ?? 'Untitled'}
-                </NavLink>
-              );
-            })}
+            {filteredItems.map((item) => (
+              <NavLink
+                key={item.item_id}
+                to={buildItemUrl(item.item_id)}
+                className={({ isActive }) =>
+                  `block rounded px-2 py-1 text-sm ${
+                    isActive ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'
+                  }`
+                }
+              >
+                {item.translations?.[0]?.text ?? 'Untitled'}
+              </NavLink>
+            ))}
             {filteredItems.length === 0 && (
               <p className="px-2 py-1 text-sm text-gray-500">
                 No strings to show.
@@ -408,7 +398,6 @@ export default function Layout() {
             )}
           </div>
 
-          {/* Add new string */}
           <Form method="post" action="/" className="mt-4">
             <Input
               type="text"
@@ -421,7 +410,6 @@ export default function Layout() {
             </Button>
           </Form>
 
-          {/* Queue translations */}
           <Form method="post" action="/" className="mt-4">
             <Button
               type="submit"
@@ -433,7 +421,6 @@ export default function Layout() {
             </Button>
           </Form>
 
-          {/* Import from source */}
           <Form method="post" action="/" className="mt-4">
             <Button
               type="submit"
@@ -446,7 +433,6 @@ export default function Layout() {
           </Form>
         </aside>
 
-        {/* Right panel */}
         <main className="flex-1 max-w-3xl p-6 overflow-auto">
           <Outlet context={{ lang }} />
         </main>
