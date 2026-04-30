@@ -65,14 +65,28 @@ export default function AllItems() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
+  const requestedLanguageId = searchParams.get('lang');
+  const defaultLanguageId =
+    availableLanguages.find(
+      (language: Language) =>
+        String(language.language_id) ===
+        String(userPreferences?.preferred_language_id)
+    )?.language_id ??
+    availableLanguages[0]?.language_id ??
+    '';
+  const initialLanguageId =
+    availableLanguages.find(
+      (language: Language) =>
+        String(language.language_id) === String(requestedLanguageId)
+    )?.language_id ?? defaultLanguageId;
   const [languageId, setLanguageId] = useState<string>(
-    () => searchParams.get('lang') ?? String(userPreferences?.preferred_language_id ?? availableLanguages[0]?.language_id ?? ENGLISH_ID)
+    () => String(initialLanguageId)
   );
   const [showSources, setShowSources] = useState(
     () => searchParams.get('sources') === '1'
   );
 
-  const langIdNum = parseInt(languageId, 10) || ENGLISH_ID;
+  const langIdNum = parseInt(languageId, 10) || 0;
   const filtered = useMemo(
     () => items.filter((item: Item) => matchesSearch(item, query, langIdNum)),
     [items, query, langIdNum]
@@ -108,14 +122,14 @@ export default function AllItems() {
             placeholder="Search here"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="rounded-full"
+            className="rounded-full px-4"
           />
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <label className="text-xs text-muted-foreground self-center">
               Language
             </label>
             <Select value={languageId} onValueChange={handleLangChange}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-[280px] max-w-full">
                 <SelectValue placeholder="Select language" />
               </SelectTrigger>
               <SelectContent>

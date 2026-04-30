@@ -25,13 +25,21 @@ export default function Settings() {
           getAvailableLanguages(),
           getUserPreferences()
         ]);
-        setLanguages(
-          languagesData.map((language) => ({
+        const visibleLanguages = languagesData.map((language) => ({
             ...language,
             language_id: String(language.language_id),
-          }))
+          })
         );
-        setPreferredLanguageId(String(preferencesData.preferred_language_id));
+        const preferredLanguage = String(preferencesData.preferred_language_id);
+        const selectedLanguage =
+          visibleLanguages.find(
+            (language) => language.language_id === preferredLanguage
+          )?.language_id ??
+          visibleLanguages[0]?.language_id ??
+          '';
+
+        setLanguages(visibleLanguages);
+        setPreferredLanguageId(selectedLanguage);
       } catch (error) {
         console.error('Failed to load settings data:', error);
       } finally {
@@ -102,7 +110,7 @@ export default function Settings() {
           </p>
         </div>
 
-        <Button onClick={handleSave} disabled={saving}>
+        <Button onClick={handleSave} disabled={saving || !preferredLanguageId}>
           {saving ? 'Saving...' : 'Save Preferences'}
         </Button>
         {saveStatus === 'saved' && (

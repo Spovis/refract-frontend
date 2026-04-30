@@ -18,6 +18,7 @@ import {
 } from "~/utils/backend";
 import Button from "~/src/general/Button";
 import { Input } from "~/components/ui/input";
+import { Textarea } from "~/components/ui/textarea";
 import { ButtonIcon} from "~/components/ui/buttons/arrow-button";
 
 type ItemActionData =
@@ -151,56 +152,59 @@ export default function ItemEditor() {
         
         return (
           <div key={`${item.item_id}-${lang.language_id}`} className="border rounded-lg p-4 bg-card">
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">
-              {lang.name}
-              {!!translation?.approved && (
-                <span className="ml-2 inline-flex items-center">
-                  <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                    <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                </span>
-              )}
-            </h3>
-            
-            <Form method="post" className="flex items-center gap-2">
+            <Form method="post" className="space-y-3">
               <Input type="hidden" name="itemId" value={item.item_id} />
               <Input type="hidden" name="translationId" value={translation?.translation_id} />
               <Input type="hidden" name="language" value={lang.language_id} />
+
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  {lang.name}
+                  {!!translation?.approved && (
+                    <span className="ml-2 inline-flex items-center">
+                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    </span>
+                  )}
+                </h3>
+
+                {!isEnglish && (
+                  <div className="flex shrink-0 gap-2">
+                    <Button
+                      type="submit"
+                      name="_action"
+                      value="SAVE_TRANSLATION"
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      type="submit"
+                      name="_action"
+                      value="APPROVE_TRANSLATION"
+                      className={
+                        translation?.approved
+                          ? "bg-gray-600 hover:bg-gray-700 text-white"
+                          : "bg-blue-600 hover:bg-blue-700 text-white"
+                      }
+                    >
+                      {translation?.approved ? "Unapprove" : "Approve"}
+                    </Button>
+                  </div>
+                )}
+              </div>
               
-              <Input
-                type="text"
+              <Textarea
+                autoResize
                 name="translation"
                 defaultValue={translation?.text ?? ""}
                 placeholder={`Enter translation...`}
-                className="border p-2 rounded flex-1"
+                className="border p-2 rounded"
                 disabled={isEnglish} // English is read-only
               />
-              
-              {!isEnglish && (
-                <>
-                  <Button 
-                    type="submit" 
-                    name="_action" 
-                    value="SAVE_TRANSLATION" 
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    Save
-                  </Button>
-                  {translation?.approved 
-                    ? <Button disabled className="bg-gray-400 text-white cursor-not-allowed">Approved</Button> : 
-                    <Button 
-                      type="submit" 
-                      name="_action" 
-                      value="APPROVE_TRANSLATION" 
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      Approve
-                    </Button>
-                  }
-                </>
-              )}
             </Form>
           </div>
         );

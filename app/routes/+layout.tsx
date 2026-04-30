@@ -298,26 +298,23 @@ export default function Layout() {
 
   useEffect(() => {
     const previousIds = previousFilteredItemIds.current;
-    const wasVisible =
-      currentItemId !== null && previousIds.includes(currentItemId);
     const isVisible =
       currentItemId !== null && filteredItemIds.includes(currentItemId);
 
-    if (
-      showOnlyUnapproved &&
-      currentItemId !== null &&
-      wasVisible &&
-      !isVisible
-    ) {
+    if (currentItemId !== null && !isVisible) {
       const previousIndex = previousIds.indexOf(currentItemId);
       const nextItemId =
         filteredItemIds[previousIndex] ??
         filteredItemIds[previousIndex - 1] ??
         null;
 
-      navigate(nextItemId !== null ? buildItemUrl(nextItemId) : '/', {
-        replace: true,
-      });
+      if (nextItemId !== null) {
+        navigate(buildItemUrl(nextItemId), { replace: true });
+      } else {
+        navigate(showOnlyUnapproved ? '/' : '/?view=approved', {
+          replace: true,
+        });
+      }
     }
 
     previousFilteredItemIds.current = filteredItemIds;
@@ -404,6 +401,11 @@ export default function Layout() {
                 </NavLink>
               );
             })}
+            {filteredItems.length === 0 && (
+              <p className="px-2 py-1 text-sm text-gray-500">
+                No strings to show.
+              </p>
+            )}
           </div>
 
           {/* Add new string */}
