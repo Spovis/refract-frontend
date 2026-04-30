@@ -8,15 +8,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
+
+type HeaderUser = {
+  name?: string;
+  email?: string;
+  picture?: string;
+};
 
 export function AvatarDropdown() {
-  const [user, setUser] = useState<{ name?: string; email?: string } | null>(
-    null
-  );
+  const [user, setUser] = useState<HeaderUser | null>(null);
 
   useEffect(() => {
-    fetch('/api/user-info', {
+    fetch('/user-info', {
       credentials: 'include',
     })
       .then((res) => {
@@ -26,6 +31,20 @@ export function AvatarDropdown() {
       .then((data) => setUser(data))
       .catch(() => setUser(null));
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      // Redirect to home page or trigger a page reload to clear session
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   return (
     <DropdownMenu>
       <nav className="hidden md:flex gap-4 text-sm ">{user?.name}</nav>
@@ -39,12 +58,15 @@ export function AvatarDropdown() {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-32">
         <DropdownMenuGroup>
-          <DropdownMenuItem>Profile</DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/settings">Settings</Link>
+          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem variant="destructive">Log out</DropdownMenuItem>
+          <DropdownMenuItem variant="destructive" onClick={handleLogout}>
+            Log out
+          </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

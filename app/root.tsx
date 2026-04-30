@@ -28,10 +28,9 @@ import {
   queueTranslations,
   importFromSource,
 } from '~/utils/backend';
-import type { ActionArgs } from './+types/root';
 import { redirect } from 'react-router';
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: { request: Request }) {
   const formData = await request.formData();
   const actionType = formData.get('_action');
 
@@ -39,9 +38,9 @@ export async function action({ request }: ActionArgs) {
     const text = formData.get('text');
     if (!text || typeof text !== 'string') return { error: 'Text is required' };
     try {
-      const result = await createItem(text);
+      const result = await createItem(text, request);
       if (result?.item_id) {
-        await queueTranslations(result.item_id.toString());
+        await queueTranslations(result.item_id.toString(), request);
         return redirect(`/items/${result.item_id}`);
       }
       return { error: 'Failed to create item' };
@@ -52,12 +51,12 @@ export async function action({ request }: ActionArgs) {
   }
 
   if (actionType === 'queue-translations') {
-    await queueTranslations();
+    await queueTranslations(undefined, request);
     return { success: true };
   }
 
   if (actionType === 'import-from-source') {
-    await importFromSource();
+    await importFromSource(request);
     return { success: true };
   }
 
