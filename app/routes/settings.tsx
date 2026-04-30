@@ -1,7 +1,20 @@
-import { useEffect, useState } from 'react';
-import { getAvailableLanguages, getUserPreferences, updateUserPreferences } from '../utils/backend';
-import { Button } from '../components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { useState } from 'react';
+import { redirectDocument, useLoaderData } from 'react-router';
+import {
+  getAvailableLanguages,
+  getAuthStatus,
+  getUserPreferences,
+  GOOGLE_AUTH_URL,
+  updateUserPreferences,
+} from '~/utils/backend';
+import { Button } from '~/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '~/components/ui/select';
 
 interface Language {
   language_id: string;
@@ -9,46 +22,46 @@ interface Language {
   name: string;
 }
 
+const ENGLISH_ID = 1;
+
+export async function loader({ request }: { request: Request }) {
+  const authStatus = await getAuthStatus(request);
+  if (!authStatus.ok) {
+    throw redirectDocument(GOOGLE_AUTH_URL);
+  }
+
+  const [languagesData, preferencesData] = await Promise.all([
+    getAvailableLanguages(request),
+    getUserPreferences(request).catch(() => ({
+      preferred_language_id: ENGLISH_ID,
+    })),
+  ]);
+
+  const languages: Language[] = languagesData.map((language) => ({
+    ...language,
+    language_id: String(language.language_id),
+  }));
+
+  const preferredLanguage = String(preferencesData.preferred_language_id);
+  const preferredLanguageId =
+    languages.find((language) => language.language_id === preferredLanguage)
+      ?.language_id ??
+    languages[0]?.language_id ??
+    '';
+
+  return { languages, preferredLanguageId };
+}
+
 export default function Settings() {
-  const [languages, setLanguages] = useState<Language[]>([]);
-  const [preferredLanguageId, setPreferredLanguageId] = useState('1');
-  const [loading, setLoading] = useState(true);
+  const { languages, preferredLanguageId: initialPreferredLanguageId } =
+    useLoaderData<typeof loader>();
+  const [preferredLanguageId, setPreferredLanguageId] = useState(
+    initialPreferredLanguageId
+  );
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'error'>(
     'idle'
   );
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [languagesData, preferencesData] = await Promise.all([
-          getAvailableLanguages(),
-          getUserPreferences()
-        ]);
-        const visibleLanguages = languagesData.map((language) => ({
-            ...language,
-            language_id: String(language.language_id),
-          })
-        );
-        const preferredLanguage = String(preferencesData.preferred_language_id);
-        const selectedLanguage =
-          visibleLanguages.find(
-            (language) => language.language_id === preferredLanguage
-          )?.language_id ??
-          visibleLanguages[0]?.language_id ??
-          '';
-
-        setLanguages(visibleLanguages);
-        setPreferredLanguageId(selectedLanguage);
-      } catch (error) {
-        console.error('Failed to load settings data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
 
   const handleSave = async () => {
     setSaving(true);
@@ -68,15 +81,6 @@ export default function Settings() {
       setSaving(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Settings</h1>
-        <div>Loading...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 py-8">
