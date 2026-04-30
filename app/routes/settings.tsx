@@ -91,7 +91,7 @@ export default function Settings() {
             value={preferredLanguageId}
             onValueChange={setPreferredLanguageId}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full bg-white">
               <SelectValue placeholder="Select a language" />
             </SelectTrigger>
             <SelectContent position="popper">
@@ -110,7 +110,7 @@ export default function Settings() {
           </p>
         </div>
 
-        <Button onClick={handleSave} disabled={saving || !preferredLanguageId}>
+        <Button onClick={handleSave} disabled={saving || !preferredLanguageId} className="bg-salmon text-white font-semibold hover:bg-salmon/90 cursor-pointer rounded-full">
           {saving ? 'Saving...' : 'Save Preferences'}
         </Button>
         {saveStatus === 'saved' && (

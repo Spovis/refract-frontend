@@ -9,8 +9,10 @@ import {
 
 import type { Route } from './+types/root';
 import './app.css';
+import faviconHref from '~/src/RefractLogo.svg';
 
 export const links: Route.LinksFunction = () => [
+  { rel: 'icon', href: faviconHref, type: 'image/svg+xml' },
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
   {
     rel: 'preconnect',
@@ -61,6 +63,10 @@ export async function action({ request }: { request: Request }) {
   }
 
   return null;
+}
+
+export function meta() {
+  return [ { title: 'Refract', }, ];
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {

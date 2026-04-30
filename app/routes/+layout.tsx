@@ -8,6 +8,7 @@ import {
   redirect,
   redirectDocument,
 } from 'react-router';
+import KeyIcon from '~/src/KeyIcon.svg';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ActionArgs } from '~/routes/+types';
 import {
@@ -30,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '~/components/ui/dropdown-menu';
 
 const ALL_LANGUAGES = 'all';
 
@@ -127,6 +129,15 @@ export async function action({ request }: ActionArgs) {
   }
 
   return null;
+}
+
+function ListItem({ item, isActive }: { item: LayoutItem, isActive: boolean }) {
+  return (
+    <div className="flex gap-2">
+      {isActive && (<img src={KeyIcon} alt="Key" className="w-5 h-5" />)}
+      <p>{item.translations?.[0]?.text ?? 'Untitled'}</p>
+    </div>
+  );
 }
 
 export default function Layout() {
@@ -330,112 +341,125 @@ export default function Layout() {
     <div className="flex flex-col h-screen">
       <Header />
 
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="w-72 border-r p-4 flex flex-col">
-          <h2 className="font-bold text-sm text-gray-500 mb-4">Strings</h2>
+      <div className="py-4 w-full bg-[#F9F9F9] border-b">
+        <div className="flex gap-1 items-start w-full max-w-7xl mx-auto pl-4">
+          <button
+            onClick={() => handleApprovalFilterChange(true)}
+            className={`flex w-fit px-3 py-2 text-xs rounded-full transition-colors cursor-pointer ${
+              showOnlyUnapproved
+                ? 'bg-salmon text-white font-semibold'
+                : 'bg-[#E0E0E0] hover:bg-lightgray'
+            }`}
+          >
+            New Keys
+          </button>
+          <button
+            onClick={() => handleApprovalFilterChange(false)}
+            className={`flex w-fit px-3 py-2 text-xs rounded-full transition-colors cursor-pointer ${
+              !showOnlyUnapproved
+                ? 'bg-salmon text-white font-semibold'
+                : 'bg-[#E0E0E0] hover:bg-lightgray'
+            }`}
+          >
+            Approved Keys
+          </button>
+        </div>
+      </div>
 
-          <h3 className="text-xs font-medium text-gray-500 mb-2">View</h3>
-          <div className="flex gap-1 mb-4 border rounded-md p-1 bg-gray-50">
-            <button
-              onClick={() => handleApprovalFilterChange(true)}
-              className={`flex-1 px-3 py-1 text-xs rounded transition-colors ${
-                showOnlyUnapproved
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Unapproved
-            </button>
-            <button
-              onClick={() => handleApprovalFilterChange(false)}
-              className={`flex-1 px-3 py-1 text-xs rounded transition-colors ${
-                !showOnlyUnapproved
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Approved
-            </button>
-          </div>
-
-          <h3 className="text-xs font-medium text-gray-500 mb-2">Language</h3>
-          <Select value={lang} onValueChange={handleLanguageChange}>
-            <SelectTrigger className="w-full mb-4">
-              <SelectValue placeholder="Select language" />
-            </SelectTrigger>
-
-            <SelectContent>
-              <SelectItem value={ALL_LANGUAGES}>All Languages</SelectItem>
-              {availableLanguages.map((language) => (
-                <SelectItem
-                  key={language.language_id}
-                  value={language.language_id}
+      <div className="bg-[#F9F9F9] w-full">
+        <div className="w-full max-w-7xl flex flex-1 overflow-hidden mx-auto">
+          <aside className="w-1/3 max-w-[460px] p-4 flex flex-col">
+            <div className="flex-1 space-y-3 max-h-[calc(100vh-226px)] overflow-auto pr-4">
+              {filteredItems.map((item) => (
+                <NavLink
+                  key={item.item_id}
+                  to={buildItemUrl(item.item_id)}
+                  className={({ isActive }) =>
+                    `block rounded p-4 text-sm ${
+                      isActive ? 'text-black border border-lightgray bg-white' : 'bg-[#F5F5F5] border-1 border-lightgray text-gray-600 hover:bg-[#E6E6E6]'
+                    }`
+                  }
                 >
-                  {language.name}
-                </SelectItem>
+                  {({ isActive }) => (
+                    <ListItem key={item.item_id} item={item} isActive={isActive} />
+                  )}
+                </NavLink>
               ))}
-            </SelectContent>
-          </Select>
+              {filteredItems.length === 0 && (
+                <p className="px-2 py-1 text-sm text-gray-500">
+                  No strings to show.
+                </p>
+              )}
+            </div>
 
-          <div className="flex-1 space-y-1 overflow-auto">
-            {filteredItems.map((item) => (
-              <NavLink
-                key={item.item_id}
-                to={buildItemUrl(item.item_id)}
-                className={({ isActive }) =>
-                  `block rounded px-2 py-1 text-sm ${
-                    isActive ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'
-                  }`
-                }
-              >
-                {item.translations?.[0]?.text ?? 'Untitled'}
-              </NavLink>
-            ))}
-            {filteredItems.length === 0 && (
-              <p className="px-2 py-1 text-sm text-gray-500">
-                No strings to show.
-              </p>
-            )}
-          </div>
+            <DropdownMenu>
+              <div className="flex items-start p-2">
+                <DropdownMenuTrigger>
+                  <p className="px-4 py-2 bg-lightgray rounded-full cursor-pointer text-xs text-gray-600">More Actions</p>
+                </DropdownMenuTrigger>
+              </div>
+              <DropdownMenuContent side="top">
+                <div className="w-full bg-white p-4">
 
-          <Form method="post" action="/" className="mt-4">
-            <Input
-              type="text"
-              name="text"
-              placeholder="New string"
-              className="w-full border rounded p-2 mb-2"
-            />
-            <Button type="submit" name="_action" value="add-item">
-              Add Item
-            </Button>
-          </Form>
+                <Select value={lang} onValueChange={handleLanguageChange}>
+                  <SelectTrigger className="w-full mt-4">
+                    <SelectValue placeholder="Select language" />
+                  </SelectTrigger>
 
-          <Form method="post" action="/" className="mt-4">
-            <Button
-              type="submit"
-              name="_action"
-              value="queue-translations"
-              className="w-full"
-            >
-              Queue Translations
-            </Button>
-          </Form>
+                  <SelectContent>
+                    <SelectItem value={ALL_LANGUAGES}>All Languages</SelectItem>
+                    {availableLanguages.map((language) => (
+                      <SelectItem
+                        key={language.language_id}
+                        value={language.language_id}
+                      >
+                        {language.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-          <Form method="post" action="/" className="mt-4">
-            <Button
-              type="submit"
-              name="_action"
-              value="import-from-source"
-              className="w-full"
-            >
-              Import From Source
-            </Button>
-          </Form>
-        </aside>
+                <Form method="post" action="/" className="mt-4">
+                  <Input
+                    type="text"
+                    name="text"
+                    placeholder="New string"
+                    className="w-full border rounded p-2 mb-2"
+                  />
+                  <Button type="submit" name="_action" value="add-item" className="w-full">
+                    Add Item
+                  </Button>
+                </Form>
 
-        <main className="flex-1 max-w-3xl p-6 overflow-auto">
-          <Outlet context={{ lang }} />
-        </main>
+                <Form method="post" action="/" className="mt-4">
+                  <Button
+                    type="submit"
+                    name="_action"
+                    value="queue-translations"
+                    className="w-full"
+                  >
+                    Queue Translations
+                  </Button>
+                </Form>
+
+                <Form method="post" action="/" className="mt-4">
+                  <Button
+                    type="submit"
+                    name="_action"
+                    value="import-from-source"
+                    className="w-full"
+                  >
+                    Import From Source
+                  </Button>
+                </Form>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </aside>
+          <main className="flex-1 p-4 overflow-auto">
+            <Outlet context={{ lang }} />
+          </main>
+        </div>
       </div>
     </div>
   );
