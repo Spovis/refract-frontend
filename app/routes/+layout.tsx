@@ -8,6 +8,7 @@ import {
   redirect,
   redirectDocument,
 } from 'react-router';
+import KeyIcon from '~/src/KeyIcon.svg';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ActionArgs } from '~/routes/+types';
 import {
@@ -30,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '~/components/ui/dropdown-menu';
 
 const ALL_LANGUAGES = 'all';
 
@@ -127,6 +129,15 @@ export async function action({ request }: ActionArgs) {
   }
 
   return null;
+}
+
+function ListItem({ item, isActive }: { item: LayoutItem, isActive: boolean }) {
+  return (
+    <div className="flex gap-2">
+      {isActive && (<img src={KeyIcon} alt="Key" className="w-5 h-5" />)}
+      <p>{item.translations?.[0]?.text ?? 'Untitled'}</p>
+    </div>
+  );
 }
 
 export default function Layout() {
@@ -330,65 +341,45 @@ export default function Layout() {
     <div className="flex flex-col h-screen">
       <Header />
 
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="w-72 border-r p-4 flex flex-col">
-          <h2 className="font-bold text-sm text-gray-500 mb-4">Strings</h2>
-
-          <h3 className="text-xs font-medium text-gray-500 mb-2">View</h3>
-          <div className="flex gap-1 mb-4 border rounded-md p-1 bg-gray-50">
+      <div className="flex flex-1 overflow-hidden bg-[#F9F9F9]">
+        <aside className="w-1/3 max-w-[460px] border-r p-4 flex flex-col">
+          <div className="flex gap-1 mb-4">
             <button
               onClick={() => handleApprovalFilterChange(true)}
-              className={`flex-1 px-3 py-1 text-xs rounded transition-colors ${
+              className={`flex-1 px-3 py-2 text-xs rounded-full transition-colors ${
                 showOnlyUnapproved
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-salmon text-white font-semibold'
+                  : 'bg-[#F0F0F0] hover:bg-lightgray'
               }`}
             >
-              Unapproved
+              New Keys
             </button>
             <button
               onClick={() => handleApprovalFilterChange(false)}
-              className={`flex-1 px-3 py-1 text-xs rounded transition-colors ${
+              className={`flex-1 px-3 py-2 text-xs rounded-full transition-colors ${
                 !showOnlyUnapproved
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-salmon text-white font-semibold'
+                  : 'bg-[#F0F0F0] hover:bg-lightgray'
               }`}
             >
-              Approved
+              Approved Keys
             </button>
           </div>
 
-          <h3 className="text-xs font-medium text-gray-500 mb-2">Language</h3>
-          <Select value={lang} onValueChange={handleLanguageChange}>
-            <SelectTrigger className="w-full mb-4">
-              <SelectValue placeholder="Select language" />
-            </SelectTrigger>
-
-            <SelectContent>
-              <SelectItem value={ALL_LANGUAGES}>All Languages</SelectItem>
-              {availableLanguages.map((language) => (
-                <SelectItem
-                  key={language.language_id}
-                  value={language.language_id}
-                >
-                  {language.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <div className="flex-1 space-y-1 overflow-auto">
+          <div className="flex-1 space-y-3 overflow-auto pr-4">
             {filteredItems.map((item) => (
               <NavLink
                 key={item.item_id}
                 to={buildItemUrl(item.item_id)}
                 className={({ isActive }) =>
-                  `block rounded px-2 py-1 text-sm ${
-                    isActive ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'
+                  `block rounded p-4 text-sm ${
+                    isActive ? 'text-black border border-lightgray bg-white' : 'bg-[#F5F5F5] border-1 border-lightgray text-gray-600 hover:bg-[#E6E6E6]'
                   }`
                 }
               >
-                {item.translations?.[0]?.text ?? 'Untitled'}
+                {({ isActive }) => (
+                  <ListItem key={item.item_id} item={item} isActive={isActive} />
+                )}
               </NavLink>
             ))}
             {filteredItems.length === 0 && (
@@ -398,39 +389,70 @@ export default function Layout() {
             )}
           </div>
 
-          <Form method="post" action="/" className="mt-4">
-            <Input
-              type="text"
-              name="text"
-              placeholder="New string"
-              className="w-full border rounded p-2 mb-2"
-            />
-            <Button type="submit" name="_action" value="add-item">
-              Add Item
-            </Button>
-          </Form>
+          <DropdownMenu>
+            <div className="flex items-start p-2">
+              <DropdownMenuTrigger>
+                <p className="px-4 py-2 bg-lightgray rounded-full cursor-pointer text-xs text-gray-600">More Actions</p>
+              </DropdownMenuTrigger>
+            </div>
+            <DropdownMenuContent side="top">
+              <div className="w-full bg-white p-4">
 
-          <Form method="post" action="/" className="mt-4">
-            <Button
-              type="submit"
-              name="_action"
-              value="queue-translations"
-              className="w-full"
-            >
-              Queue Translations
-            </Button>
-          </Form>
+              <Select value={lang} onValueChange={handleLanguageChange}>
+                <SelectTrigger className="w-full mt-4">
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
 
-          <Form method="post" action="/" className="mt-4">
-            <Button
-              type="submit"
-              name="_action"
-              value="import-from-source"
-              className="w-full"
-            >
-              Import From Source
-            </Button>
-          </Form>
+                <SelectContent>
+                  <SelectItem value={ALL_LANGUAGES}>All Languages</SelectItem>
+                  {availableLanguages.map((language) => (
+                    <SelectItem
+                      key={language.language_id}
+                      value={language.language_id}
+                    >
+                      {language.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Form method="post" action="/" className="mt-4">
+                <Input
+                  type="text"
+                  name="text"
+                  placeholder="New string"
+                  className="w-full border rounded p-2 mb-2"
+                />
+                <Button type="submit" name="_action" value="add-item" className="w-full">
+                  Add Item
+                </Button>
+              </Form>
+
+              <Form method="post" action="/" className="mt-4">
+                <Button
+                  type="submit"
+                  name="_action"
+                  value="queue-translations"
+                  className="w-full"
+                >
+                  Queue Translations
+                </Button>
+              </Form>
+
+              <Form method="post" action="/" className="mt-4">
+                <Button
+                  type="submit"
+                  name="_action"
+                  value="import-from-source"
+                  className="w-full"
+                >
+                  Import From Source
+                </Button>
+              </Form>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
         </aside>
 
         <main className="flex-1 max-w-3xl p-6 overflow-auto">
