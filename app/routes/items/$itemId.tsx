@@ -62,8 +62,15 @@ export async function action({ request }: ActionArgs): Promise<ItemActionData> {
     }
     case 'APPROVE_TRANSLATION': {
       const translationId = formData.get('translationId') as string;
-      if (!translationId) return { error: 'Missing data' };
+      const languageId = formData.get('language') as string;
+      const translation = formData.get('translation') as string;
+
+      if (!translationId || !languageId || !itemId || !translation) return { error: 'Missing data' };
+
+      // save it, then approve it
+      await putTranslation(itemId, languageId, translation, request);
       await approveTranslation(translationId, request);
+
       return { success: true, action: 'APPROVE_TRANSLATION', itemId };
     }
     case 'DELETE_ITEM': {
